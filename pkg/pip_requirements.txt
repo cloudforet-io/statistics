@@ -1,0 +1,4 @@
+spaceone-core
+spaceone-api
+mongoengine
+pandas
