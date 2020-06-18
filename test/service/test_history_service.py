@@ -219,6 +219,26 @@ class TestHistoryService(unittest.TestCase):
         print_data(values, 'test_stat_history')
 
     @patch.object(MongoModel, 'connect', return_value=None)
+    def test_stat_history_distinct(self, *args):
+        history_vos = HistoryFactory.build_batch(10, domain_id=self.domain_id)
+        list(map(lambda vo: vo.save(), history_vos))
+
+        params = {
+            'domain_id': self.domain_id,
+            'topic': history_vos[0].topic,
+            'query': {
+                'distinct': 'topic'
+            }
+        }
+
+        self.transaction.method = 'stat'
+        history_svc = HistoryService(transaction=self.transaction)
+        values = history_svc.stat(params)
+        StatisticsInfo(values)
+
+        print_data(values, 'test_stat_history_distinct')
+
+    @patch.object(MongoModel, 'connect', return_value=None)
     def test_diff_history(self, *args):
         end = datetime.utcnow()
         start = end - timedelta(hours=24)

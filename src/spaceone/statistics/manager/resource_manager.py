@@ -23,8 +23,7 @@ class ResourceManager(BaseManager):
         self.service_connector.check_resource_type(service, resource)
 
         try:
-            stat_info = self.service_connector.stat_resource(service, resource, query, domain_id)
-            return stat_info.get('results', [])
+            return self.service_connector.stat_resource(service, resource, query, domain_id)
         except ERROR_BASE as e:
             raise ERROR_STATISTICS_QUERY(reason=e.message)
         except Exception as e:
@@ -37,10 +36,11 @@ class ResourceManager(BaseManager):
         else:
             base_df = pd.DataFrame(base_results)
 
-        base_df = self._left_join(base_df, base_resource_type, join, domain_id)
+        base_df = self._join(base_df, base_resource_type, join, domain_id)
         base_df = self._execute_formula(base_df, formulas)
         base_df = self._sort(base_df, sort)
 
+        response = {}
         joined_results = base_df.to_dict('records')
 
         if 'limit' in page and page['limit'] > 0:
@@ -48,11 +48,14 @@ class ResourceManager(BaseManager):
             if start < 1:
                 start = 1
 
-            return joined_results[start - 1:start + page['limit'] - 1]
+            response['total_count'] = len(joined_results)
+            response['results'] = joined_results[start - 1:start + page['limit'] - 1]
         elif limit:
-            return joined_results[:limit]
+            response['results'] = joined_results[:limit]
         else:
-            return joined_results
+            response['results'] = joined_results
+
+        return response
 
     def _execute_formula(self, base_df, formulas):
         if len(formulas) > 0:
@@ -67,10 +70,11 @@ class ResourceManager(BaseManager):
 
         return base_df
 
-    def _left_join(self, base_df, base_resource_type, join, domain_id):
+    def _join(self, base_df, base_resource_type, join, domain_id):
         for join_query in join:
             self._check_join_query(join_query)
-            join_results = self.stat(join_query['resource_type'], join_query['query'], domain_id)
+            response = self.stat(join_query['resource_type'], join_query['query'], domain_id)
+            join_results = response.get('results', [])
             if len(join_results) > 0:
                 join_df = pd.DataFrame(join_results)
             else:

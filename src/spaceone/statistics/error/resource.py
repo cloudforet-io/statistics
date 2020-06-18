@@ -19,3 +19,7 @@ class ERROR_STATISTICS_INDEX_JOIN(ERROR_INVALID_ARGUMENT):
 
 class ERROR_STATISTICS_FORMULA(ERROR_INVALID_ARGUMENT):
     _message = 'Statistics formula error: {formula}'
+
+
+class ERROR_STATISTICS_DISTINCT(ERROR_INVALID_ARGUMENT):
+    _message = 'The distinct option cannot be used with join or formula.'

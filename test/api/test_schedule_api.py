@@ -40,7 +40,9 @@ class _MockScheduleService(BaseService):
         return ScheduleFactory.build_batch(10, **params), 10
 
     def stat(self, params):
-        return [{'project_id': utils.generate_id('project'), 'server_count': 100}]
+        return {
+            'results': [{'project_id': utils.generate_id('project'), 'server_count': 100}]
+        }
 
 
 class TestScheduleAPI(unittest.TestCase):
