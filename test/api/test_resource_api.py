@@ -18,7 +18,7 @@ from test.factory.resource_factory import StatFactory
 class _MockStatService(BaseService):
 
     def stat(self, params):
-        return StatFactory(**params)['results']
+        return StatFactory(**params)
 
 
 class TestResourceAPI(unittest.TestCase):

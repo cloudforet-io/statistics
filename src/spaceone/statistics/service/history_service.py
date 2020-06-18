@@ -47,23 +47,31 @@ class HistoryService(BaseService):
         options = schedule_data['options']
         resource_type = options['resource_type']
         query = options.get('query', {})
+        distinct = query.get('distinct')
         join = list(map(lambda j: j.to_dict(), options.get('join', [])))
         formulas = list(map(lambda f: f.to_dict(), options.get('formulas', [])))
         sort = query.get('sort')
         page = query.get('page', {})
         limit = query.get('limit')
+        has_join_or_formula = len(join) > 0 or len(formulas) > 0
 
-        if len(join) > 0 or len(formulas) > 0 or limit:
-            query['sort'] = None
-            query['page'] = None
-            query['limit'] = None
+        if distinct:
+            if has_join_or_formula:
+                raise ERROR_STATISTICS_DISTINCT()
+        else:
+            if has_join_or_formula:
+                query['sort'] = None
+                query['page'] = None
+                query['limit'] = None
 
-        results = self.resource_mgr.stat(resource_type, query, domain_id)
+        response = self.resource_mgr.stat(resource_type, query, domain_id)
         if len(join) > 0 or len(formulas) > 0:
-            results = self.resource_mgr.join_and_execute_formula(results, resource_type,
-                                                                 query, join, formulas, sort,
-                                                                 page, limit, domain_id)
+            results = response.get('results', [])
+            response = self.resource_mgr.join_and_execute_formula(results, resource_type,
+                                                                  query, join, formulas, sort,
+                                                                  page, limit, domain_id)
 
+        results = response.get('results', [])
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)
 
     @transaction

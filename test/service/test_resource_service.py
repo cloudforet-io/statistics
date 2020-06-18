@@ -307,6 +307,10 @@ class TestResourceService(unittest.TestCase):
                             'name': 'project_group_name'
                         }],
                     }
+                },
+                'page': {
+                    'start': 2,
+                    'limit': 1
                 }
             },
             'join': [{
@@ -339,6 +343,97 @@ class TestResourceService(unittest.TestCase):
 
         print_data(results, 'test_resource_stat_empty_join')
         StatisticsInfo(results)
+
+    @patch.object(MongoModel, 'connect', return_value=None)
+    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, 'stat_resource')
+    def test_resource_stat_distinct(self, mock_stat_resource, *args):
+        mock_stat_resource.side_effect = [
+            {
+                'results': [
+                    utils.generate_id('project'),
+                    utils.generate_id('project'),
+                    utils.generate_id('project'),
+                    utils.generate_id('project'),
+                    utils.generate_id('project')
+                ],
+                'total_count': 24
+            }
+        ]
+
+        params = {
+            'resource_type': 'identity.Project',
+            'query': {
+                'distinct': 'project_id',
+                'page': {
+                    'start': 5,
+                    'limit': 5
+                }
+            },
+            'domain_id': utils.generate_id('domain')
+        }
+
+        self.transaction.method = 'stat'
+        resource_svc = ResourceService(transaction=self.transaction)
+        results = resource_svc.stat(params.copy())
+
+        print_data(results, 'test_resource_stat_distinct')
+        StatisticsInfo(results)
+
+    @patch.object(MongoModel, 'connect', return_value=None)
+    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, 'stat_resource')
+    def test_resource_stat_distinct_with_join(self, mock_stat_resource, *args):
+        mock_stat_resource.side_effect = [
+            {
+                'results': [
+                    utils.generate_id('project'),
+                    utils.generate_id('project'),
+                    utils.generate_id('project'),
+                    utils.generate_id('project'),
+                    utils.generate_id('project')
+                ],
+                'total_count': 24
+            }
+        ]
+
+        params = {
+            'resource_type': 'identity.Project',
+            'query': {
+                'distinct': 'project_id',
+                'page': {
+                    'start': 5,
+                    'limit': 5
+                }
+            },
+            'join': [{
+                'keys': ['project_id', 'project_name'],
+                'resource_type': 'inventory.Server',
+                'query': {
+                    'aggregate': {
+                        'group': {
+                            'keys': [{
+                                'key': 'project_id',
+                                'name': 'project_id'
+                            }, {
+                                'key': 'name',
+                                'name': 'project_name'
+                            }],
+                            'fields': [{
+                                'operator': 'count',
+                                'name': 'server_count'
+                            }]
+                        }
+                    }
+                }
+            }],
+            'domain_id': utils.generate_id('domain')
+        }
+
+        self.transaction.method = 'stat'
+        resource_svc = ResourceService(transaction=self.transaction)
+        with self.assertRaises(ERROR_STATISTICS_DISTINCT):
+            resource_svc.stat(params.copy())
 
 
 if __name__ == "__main__":

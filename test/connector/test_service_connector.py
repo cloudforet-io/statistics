@@ -235,25 +235,41 @@ class TestServiceConnector(unittest.TestCase):
     def test_base_query(self):
         query = {
             "aggregate": {
-                    "group": {
-                        "keys": [
-                            {
-                                "key": "project_id",
-                                "name": "project_id"
-                            }
-                        ],
-                        "fields": [
-                            {
-                                "operator": "count",
-                                "name": "server_count"
-                            }
-                        ]
-                    }
+                "group": {
+                    "keys": [
+                        {
+                            "key": "project_id",
+                            "name": "project_id"
+                        }
+                    ],
+                    "fields": [
+                        {
+                            "operator": "count",
+                            "name": "server_count"
+                        }
+                    ]
                 }
+            },
+            'page': {
+                'start': 3,
+                'limit': 5
+            }
         }
         self.service_connector.check_resource_type('identity', 'Project')
         response = self.service_connector.stat_resource('identity', 'Project', query, self.domain_id)
         print_data(response, 'test_base_query')
+
+    def test_distinct_query(self):
+        query = {
+            "distinct": "project_id",
+            'page': {
+                'start': 3,
+                'limit': 5
+            }
+        }
+        self.service_connector.check_resource_type('identity', 'Project')
+        response = self.service_connector.stat_resource('identity', 'Project', query, self.domain_id)
+        print_data(response, 'test_distinct_query')
 
 
 if __name__ == "__main__":
