@@ -148,7 +148,10 @@ class HistoryService(BaseService):
         from_data = self._get_history_data(topic, diff_filter[:], diff_filter_or[:], diff_from, domain_id)
         to_data = self._get_history_data(topic, diff_filter[:], diff_filter_or[:], diff_to, domain_id, diff_from)
 
-        return self.history_mgr.diff_history(from_data, to_data, default_fields, diff_fields)
+        diff_values = self.history_mgr.diff_history(from_data, to_data, default_fields, diff_fields)
+        return {
+            'results': diff_values
+        }
 
     @staticmethod
     def _check_from_to_date(diff_from, diff_to):
