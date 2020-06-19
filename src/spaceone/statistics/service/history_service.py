@@ -164,7 +164,8 @@ class HistoryService(BaseService):
 
     def _get_history_data(self, topic, diff_filter, diff_filter_or, diff_datetime, domain_id, max_datetime=None):
         query = self._make_statistics_query(topic, diff_filter, diff_filter_or, diff_datetime, domain_id, max_datetime)
-        results = self.history_mgr.stat_history(query)
+        result = self.history_mgr.stat_history(query)
+        results = result.get('results', [])
         if len(results) > 0:
             return results[0]['data']
         else:
