@@ -26,8 +26,9 @@ class JoinQuery(EmbeddedDocument):
 
 
 class Formula(EmbeddedDocument):
-    name = StringField(max_length=40)
+    name = StringField(max_length=40, default=None, null=True)
     formula = StringField()
+    operator = StringField(max_length=40, default='EVAL', choices=('EVAL', 'QUERY'))
 
     def to_dict(self):
         return self.to_mongo()
