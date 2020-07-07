@@ -63,10 +63,29 @@ class ResourceManager(BaseManager):
 
         for formula in formulas:
             self._check_formula(formula)
-            try:
-                base_df[formula['name']] = base_df.eval(formula['formula'])
-            except Exception as e:
-                raise ERROR_STATISTICS_FORMULA(formula=formula)
+            operator = formula.get('operator', 'EVAL')
+            if operator == 'EVAL':
+                base_df = self._execute_formula_eval(base_df, formula['name'], formula['formula'])
+            elif operator == 'QUERY':
+                base_df = self._execute_formula_query(base_df, formula['formula'])
+
+        return base_df
+
+    @staticmethod
+    def _execute_formula_query(base_df, formula):
+        try:
+            base_df = base_df.query(formula)
+        except Exception as e:
+            raise ERROR_STATISTICS_FORMULA(formula=formula)
+
+        return base_df
+
+    @staticmethod
+    def _execute_formula_eval(base_df, name, formula):
+        try:
+            base_df[name] = base_df.eval(formula)
+        except Exception as e:
+            raise ERROR_STATISTICS_FORMULA(formula=formula)
 
         return base_df
 
@@ -140,7 +159,12 @@ class ResourceManager(BaseManager):
 
     @staticmethod
     def _check_formula(formula):
-        if 'name' not in formula:
+        operator = formula.get('operator', 'EVAL')
+
+        if operator not in ['EVAL', 'QUERY']:
+            raise ERROR_INVALID_PARAMETER(key='formulas.operator', reason='The operator only allows EVAL or QUERY.')
+
+        if operator == 'EVAL' and 'name' not in formula:
             raise ERROR_REQUIRED_PARAMETER(key='formulas.name')
 
         if 'formula' not in formula:
