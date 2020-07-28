@@ -26,9 +26,3 @@ class History(BaseAPI, history_pb2_grpc.HistoryServicer):
 
         with self.locator.get_service('HistoryService', metadata) as history_service:
             return self.locator.get_info('StatisticsInfo', history_service.stat(params))
-
-    def diff(self, request, context):
-        params, metadata = self.parse_request(request, context)
-
-        with self.locator.get_service('HistoryService', metadata) as history_service:
-            return self.locator.get_info('StatisticsInfo', history_service.diff(params))
