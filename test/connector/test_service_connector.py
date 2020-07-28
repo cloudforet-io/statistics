@@ -14,7 +14,7 @@ class TestServiceConnector(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        config.init_conf(service='statistics')
+        config.init_conf(package='spaceone.statistics')
         config_path = os.environ.get('TEST_CONFIG')
         test_config = utils.load_yaml_from_file(config_path)
 

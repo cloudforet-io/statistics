@@ -49,7 +49,7 @@ class TestScheduleAPI(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        config.init_conf(service='statistics')
+        config.init_conf(package='spaceone.statistics')
         connect('test', host='mongomock://localhost')
         super().setUpClass()
 
@@ -130,7 +130,8 @@ class TestScheduleAPI(unittest.TestCase):
                 'formulas': [
                     {
                         'name': 'resource_count',
-                        'formula': 'server_count + cloud_service_count'
+                        'formula': 'server_count + cloud_service_count',
+                        'operator': 'EVAL'
                     }
                 ]
             },
