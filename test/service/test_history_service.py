@@ -24,7 +24,7 @@ class TestHistoryService(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        config.init_conf(service='statistics')
+        config.init_conf(package='spaceone.statistics')
         connect('test', host='mongomock://localhost')
 
         cls.domain_id = utils.generate_id('domain')
@@ -237,60 +237,6 @@ class TestHistoryService(unittest.TestCase):
         StatisticsInfo(values)
 
         print_data(values, 'test_stat_history_distinct')
-
-    @patch.object(MongoModel, 'connect', return_value=None)
-    def test_diff_history(self, *args):
-        end = datetime.utcnow()
-        start = end - timedelta(hours=24)
-        point_1 = start + timedelta(hours=3)
-        point_2 = start + timedelta(hours=6)
-        point_3 = start + timedelta(hours=9)
-        point_4 = start + timedelta(hours=12)
-
-        self._generate_diff_history('daily_server_updates', point_1, ['BAREMETAL'])
-        self._generate_diff_history('daily_server_updates', point_2)
-        self._generate_diff_history('daily_server_updates', point_3)
-        self._generate_diff_history('daily_server_updates', point_4, ['HYPERVISOR'])
-
-        params = {
-            'topic': 'daily_server_updates',
-            'from': 'now - 24h',
-            'default_fields': ['server_type', 'provider'],
-            'diff_fields': ['server_count', 'total_cpu'],
-            'domain_id': self.domain_id,
-        }
-
-        self.transaction.method = 'diff'
-        history_svc = HistoryService(transaction=self.transaction)
-        values = history_svc.diff(params)
-        StatisticsInfo(values)
-
-        print_data(values, 'test_diff_history')
-
-    def _generate_diff_history(self, topic, created_at, remove_server_type=[]):
-        if 'VM' not in remove_server_type:
-            HistoryFactory(topic=topic, created_at=created_at, domain_id=self.domain_id, values={
-                'server_type': 'VM',
-                'provider': 'openstack',
-                'server_count': float(random.randrange(0, 100)),
-                'total_cpu': float(random.randrange(0, 1000))
-            })
-
-        if 'BAREMETAL' not in remove_server_type:
-            HistoryFactory(topic=topic, created_at=created_at, domain_id=self.domain_id, values={
-                'server_type': 'BAREMETAL',
-                'provider': 'openstack',
-                'server_count': float(random.randrange(0, 100)),
-                'total_cpu': float(random.randrange(0, 1000))
-            })
-
-        if 'HYPERVISOR' not in remove_server_type:
-            HistoryFactory(topic=topic, created_at=created_at, domain_id=self.domain_id, values={
-                'server_type': 'HYPERVISOR',
-                'provider': 'openstack',
-                'server_count': float(random.randrange(0, 100)),
-                'total_cpu': float(random.randrange(0, 1000))
-            })
 
 
 if __name__ == "__main__":

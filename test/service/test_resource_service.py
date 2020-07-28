@@ -19,7 +19,7 @@ class TestResourceService(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        config.init_conf(service='statistics')
+        config.init_conf(package='spaceone.statistics')
         connect('test', host='mongomock://localhost')
 
         cls.domain_id = utils.generate_id('domain')
