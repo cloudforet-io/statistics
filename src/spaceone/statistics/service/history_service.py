@@ -73,7 +73,7 @@ class HistoryService(BaseService):
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)
 
     @transaction
-    @check_required(['topic', 'domain_id'])
+    @check_required(['domain_id'])
     @append_query_filter(['topic', 'domain_id'])
     @append_keyword_filter(['topic'])
     def list(self, params):
@@ -95,12 +95,13 @@ class HistoryService(BaseService):
         return self.history_mgr.list_history(query)
 
     @transaction
-    @check_required(['topic', 'query', 'domain_id'])
+    @check_required(['query', 'domain_id'])
     @append_query_filter(['topic', 'domain_id'])
     def stat(self, params):
         """
         Args:
             params (dict): {
+                'topic': 'str',
                 'domain_id': 'str',
                 'query': 'dict (spaceone.api.core.v1.StatisticsQuery)'
             }
