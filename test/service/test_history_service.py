@@ -44,7 +44,7 @@ class TestHistoryService(unittest.TestCase):
         print()
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_create_history(self, mock_stat_resource, *args):
         new_schedule_vo = ScheduleFactory(domain_id=self.domain_id, options={

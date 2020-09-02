@@ -20,7 +20,6 @@ class ResourceManager(BaseManager):
     def stat(self, resource_type, query, domain_id):
         self.service_connector: ServiceConnector = self.locator.get_connector('ServiceConnector')
         service, resource = self._parse_resource_type(resource_type)
-        self.service_connector.check_resource_type(service, resource)
 
         try:
             return self.service_connector.stat_resource(service, resource, query, domain_id)
@@ -37,6 +36,7 @@ class ResourceManager(BaseManager):
             base_df = pd.DataFrame(base_results)
 
         base_df = self._join(base_df, base_resource_type, join, domain_id)
+        base_df = base_df.fillna(0)
         base_df = self._execute_formula(base_df, formulas)
         base_df = self._sort(base_df, sort)
 
@@ -58,9 +58,6 @@ class ResourceManager(BaseManager):
         return response
 
     def _execute_formula(self, base_df, formulas):
-        if len(formulas) > 0:
-            base_df = base_df.fillna(0)
-
         for formula in formulas:
             self._check_formula(formula)
             operator = formula.get('operator', 'EVAL')

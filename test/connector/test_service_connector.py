@@ -52,7 +52,6 @@ class TestServiceConnector(unittest.TestCase):
                 'limit': 3
             }
         }
-        self.service_connector.check_resource_type('identity', 'Project')
         response = self.service_connector.stat_resource('identity', 'Project', query, self.domain_id)
         print_data(response, 'test_stat_identity_project')
 
@@ -87,7 +86,6 @@ class TestServiceConnector(unittest.TestCase):
                 'limit': 2
             }
         }
-        self.service_connector.check_resource_type('inventory', 'Server')
         response = self.service_connector.stat_resource('inventory', 'Server', query, self.domain_id)
         print_data(response, 'test_stat_inventory_server')
 
@@ -119,7 +117,6 @@ class TestServiceConnector(unittest.TestCase):
                 'desc': True
             }
         }
-        self.service_connector.check_resource_type('inventory', 'Server')
         response = self.service_connector.stat_resource('inventory', 'Server', query, self.domain_id)
         print_data(response, 'test_stat_inventory_server_per_project')
 
@@ -150,7 +147,6 @@ class TestServiceConnector(unittest.TestCase):
                 'desc': True
             }
         }
-        self.service_connector.check_resource_type('inventory', 'Server')
         response = self.service_connector.stat_resource('inventory', 'Server', query, self.domain_id)
         print_data(response, 'test_stat_inventory_server_per_region')
 
@@ -177,7 +173,6 @@ class TestServiceConnector(unittest.TestCase):
                 'desc': True
             }
         }
-        self.service_connector.check_resource_type('inventory', 'Server')
         response = self.service_connector.stat_resource('inventory', 'Server', query, self.domain_id)
         print_data(response, 'test_stat_inventory_server_per_instance_type')
 
@@ -205,7 +200,6 @@ class TestServiceConnector(unittest.TestCase):
                 'desc': True
             }
         }
-        self.service_connector.check_resource_type('inventory', 'CloudService')
         response = self.service_connector.stat_resource('inventory', 'CloudService', query, self.domain_id)
         print_data(response, 'test_stat_inventory_cloud_service_per_region')
 
@@ -228,7 +222,6 @@ class TestServiceConnector(unittest.TestCase):
                 'desc': True
             }
         }
-        self.service_connector.check_resource_type('inventory', 'CloudService')
         response = self.service_connector.stat_resource('inventory', 'CloudService', query, self.domain_id)
         print_data(response, 'test_stat_inventory_cloud_service_per_project')
 
@@ -255,7 +248,6 @@ class TestServiceConnector(unittest.TestCase):
                 'limit': 5
             }
         }
-        self.service_connector.check_resource_type('identity', 'Project')
         response = self.service_connector.stat_resource('identity', 'Project', query, self.domain_id)
         print_data(response, 'test_base_query')
 
@@ -267,7 +259,6 @@ class TestServiceConnector(unittest.TestCase):
                 'limit': 5
             }
         }
-        self.service_connector.check_resource_type('identity', 'Project')
         response = self.service_connector.stat_resource('identity', 'Project', query, self.domain_id)
         print_data(response, 'test_distinct_query')
 

@@ -17,21 +17,20 @@ class ServiceConnector(BaseConnector):
 
     def __init__(self, transaction, config):
         super().__init__(transaction, config)
-        self._init_client()
-
-    def _init_client(self):
         self.client = {}
-        for service, endpoint in self.config.items():
-            e = parse_endpoint(endpoint)
-            # _LOGGER.debug(f'[_init_client] Load endpoint : {endpoint}')
+
+    def _init_client(self, service, resource):
+        if service not in self.client:
+            if service not in self.config:
+                raise ERROR_INVALID_RESOURCE_TYPE(resource_type=f'{service}.{resource}')
+
+            e = parse_endpoint(self.config[service])
             if e.get('path') is None:
                 raise ERROR_CONNECTOR_CONFIGURATION(backend=self.__class__.__name__)
 
-            version = e.get('path').replace('/', '')
+            self.client[service] = pygrpc.client(endpoint=f'{e.get("hostname")}:{e.get("port")}')
 
-            self.client[service] = pygrpc.client(endpoint=f'{e.get("hostname")}:{e.get("port")}', version=version)
-
-    def check_resource_type(self, service, resource):
+    def _check_resource_type(self, service, resource):
         if service not in self.client.keys():
             raise ERROR_NOT_SUPPORT_RESOURCE_TYPE(resource_type=f'{service}.{resource}')
 
@@ -43,6 +42,9 @@ class ServiceConnector(BaseConnector):
 
     def stat_resource(self, service, resource, query, domain_id):
         _LOGGER.debug(f'[stat_resource] {service}.{resource} : {query}')
+
+        self._init_client(service, resource)
+        self._check_resource_type(service, resource)
 
         response = getattr(self.client[service], resource).stat({
             'domain_id': domain_id,

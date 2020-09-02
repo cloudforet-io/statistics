@@ -39,7 +39,7 @@ class TestResourceService(unittest.TestCase):
         print()
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_resource_stat_join_and_formula(self, mock_stat_resource, *args):
         mock_stat_resource.side_effect = [
@@ -159,7 +159,7 @@ class TestResourceService(unittest.TestCase):
         StatisticsInfo(results)
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_resource_stat_index_join(self, mock_stat_resource, *args):
         mock_stat_resource.side_effect = [
@@ -214,7 +214,7 @@ class TestResourceService(unittest.TestCase):
         StatisticsInfo(results)
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_resource_stat_index_join_wrong_index(self, mock_stat_resource, *args):
         mock_stat_resource.side_effect = [
@@ -268,7 +268,7 @@ class TestResourceService(unittest.TestCase):
         StatisticsInfo(results)
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_resource_stat_empty_join(self, mock_stat_resource, *args):
         mock_stat_resource.side_effect = [
@@ -345,7 +345,7 @@ class TestResourceService(unittest.TestCase):
         StatisticsInfo(results)
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_resource_stat_distinct(self, mock_stat_resource, *args):
         mock_stat_resource.side_effect = [
@@ -381,7 +381,7 @@ class TestResourceService(unittest.TestCase):
         StatisticsInfo(results)
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_resource_stat_distinct_with_join(self, mock_stat_resource, *args):
         mock_stat_resource.side_effect = [
