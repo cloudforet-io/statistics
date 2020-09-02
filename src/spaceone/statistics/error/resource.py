@@ -23,3 +23,7 @@ class ERROR_STATISTICS_FORMULA(ERROR_INVALID_ARGUMENT):
 
 class ERROR_STATISTICS_DISTINCT(ERROR_INVALID_ARGUMENT):
     _message = 'The distinct option cannot be used with join or formula.'
+
+
+class ERROR_INVALID_RESOURCE_TYPE(ERROR_INVALID_ARGUMENT):
+    _message = 'Resource type is undefined. (resource_type = {resource_type})'

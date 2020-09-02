@@ -44,7 +44,7 @@ class TestScheduleService(unittest.TestCase):
         schedule_vos.delete()
 
     @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, 'check_resource_type', return_value=None)
+    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
     @patch.object(ServiceConnector, 'stat_resource')
     def test_add_schedule(self, mock_stat_resource, *args):
         mock_stat_resource.side_effect = [
