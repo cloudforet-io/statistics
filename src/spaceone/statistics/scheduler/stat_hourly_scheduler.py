@@ -32,9 +32,10 @@ def _validate_token(token):
             while value is False:
                 uri = token['uri']
                 value = consul_instance.patch_token(uri)
-                _LOGGER.warn(f'[_validate_token] token: {value[:30]} uri: {uri}')
-                if value:
+                if vaule:
+                    _LOGGER.warn(f'[_validate_token] token: {value[:30]} uri: {uri}')
                     break
+                _LOGGER.warn(f'[_validate_token] token is not found ... wait')
                 time.sleep(INTERVAL)
 
             token = value
