@@ -2,3 +2,5 @@ spaceone-core
 spaceone-api
 mongoengine
 pandas
+python-consul
+redis
