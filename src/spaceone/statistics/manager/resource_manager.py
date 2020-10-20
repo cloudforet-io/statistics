@@ -101,11 +101,12 @@ class ResourceManager(BaseManager):
             join_resource_type = join_query['resource_type']
 
             try:
-                if join_keys:
-                    base_df = pd.merge(base_df, join_df, on=join_keys, how=_JOIN_TYPE_MAP[join_type])
-                else:
-                    base_df = pd.merge(base_df, join_df, left_index=True, right_index=True,
-                                       how=_JOIN_TYPE_MAP[join_type])
+                if len(base_df) > 0:
+                    if join_keys:
+                        base_df = pd.merge(base_df, join_df, on=join_keys, how=_JOIN_TYPE_MAP[join_type])
+                    else:
+                        base_df = pd.merge(base_df, join_df, left_index=True, right_index=True,
+                                           how=_JOIN_TYPE_MAP[join_type])
 
             except Exception as e:
                 base_columns = base_df.columns.values.tolist()
