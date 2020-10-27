@@ -58,13 +58,14 @@ class ResourceManager(BaseManager):
         return response
 
     def _execute_formula(self, base_df, formulas):
-        for formula in formulas:
-            self._check_formula(formula)
-            operator = formula.get('operator', 'EVAL')
-            if operator == 'EVAL':
-                base_df = self._execute_formula_eval(base_df, formula['name'], formula['formula'])
-            elif operator == 'QUERY':
-                base_df = self._execute_formula_query(base_df, formula['formula'])
+        if len(base_df) > 0:
+            for formula in formulas:
+                self._check_formula(formula)
+                operator = formula.get('operator', 'EVAL')
+                if operator == 'EVAL':
+                    base_df = self._execute_formula_eval(base_df, formula['name'], formula['formula'])
+                elif operator == 'QUERY':
+                    base_df = self._execute_formula_query(base_df, formula['formula'])
 
         return base_df
 
@@ -137,7 +138,7 @@ class ResourceManager(BaseManager):
 
     @staticmethod
     def _sort(base_df, sort):
-        if sort and 'name' in sort:
+        if (sort and 'name' in sort) and len(base_df) > 0:
             ascending = not sort.get('desc', False)
             try:
                 return base_df.sort_values(by=sort['name'], ascending=ascending)
