@@ -28,14 +28,16 @@ class ResourceManager(BaseManager):
         except Exception as e:
             raise ERROR_STATISTICS_QUERY(reason=e)
 
-    def join_and_execute_formula(self, base_results, base_resource_type, base_query, join, formulas,
-                                 sort, page, limit, domain_id):
+    def execute_additional_stat(self, base_results, base_resource_type, base_query, base_extend_data,
+                                join, concat, formulas, sort, page, limit, domain_id):
         if len(base_results) == 0:
-            base_df = self._generate_empty_join_data(base_query)
+            base_df = self._generate_empty_data(base_query)
         else:
             base_df = pd.DataFrame(base_results)
 
+        base_df = self._extend_data(base_df, base_extend_data)
         base_df = self._join(base_df, base_resource_type, join, domain_id)
+        base_df = self._concat(base_df, concat, domain_id)
         base_df = base_df.fillna(0)
         base_df = self._execute_formula(base_df, formulas)
         base_df = self._sort(base_df, sort)
@@ -56,6 +58,13 @@ class ResourceManager(BaseManager):
             response['results'] = joined_results
 
         return response
+
+    @staticmethod
+    def _extend_data(df, data):
+        for key, value in data.items():
+            df[key] = value
+
+        return df
 
     def _execute_formula(self, base_df, formulas):
         if len(base_df) > 0:
@@ -95,8 +104,9 @@ class ResourceManager(BaseManager):
             if len(join_results) > 0:
                 join_df = pd.DataFrame(join_results)
             else:
-                join_df = self._generate_empty_join_data(join_query['query'])
+                join_df = self._generate_empty_data(join_query['query'])
 
+            join_df = self._extend_data(join_df, join_query.get('extend_data', {}))
             join_keys = join_query.get('keys')
             join_type = join_query.get('type', 'LEFT')
             join_resource_type = join_query['resource_type']
@@ -121,8 +131,27 @@ class ResourceManager(BaseManager):
 
         return base_df
 
+    def _concat(self, base_df, concat, domain_id):
+        for concat_query in concat:
+            self._check_concat_query(concat_query)
+            response = self.stat(concat_query['resource_type'], concat_query['query'], domain_id)
+            concat_results = response.get('results', [])
+            if len(concat_results) > 0:
+                concat_df = pd.DataFrame(concat_results)
+            else:
+                concat_df = self._generate_empty_data(concat_results['query'])
+
+            concat_df = self._extend_data(concat_df, concat_query.get('extend_data', {}))
+
+            try:
+                return pd.concat([base_df, concat_df])
+            except Exception as e:
+                raise ERROR_STATISTICS_CONCAT(reason=str(e))
+
+        # return base_df
+
     @staticmethod
-    def _generate_empty_join_data(query):
+    def _generate_empty_data(query):
         empty_join_data = {}
         group = query.get('aggregate', {}).get('group', {})
 
@@ -174,6 +203,14 @@ class ResourceManager(BaseManager):
         if 'type' in join_query and join_query['type'] not in _JOIN_TYPE_MAP:
             raise ERROR_INVALID_PARAMETER_TYPE(key='join.type', type=list(_JOIN_TYPE_MAP.keys()))
 
+        if 'resource_type' not in join_query:
+            raise ERROR_REQUIRED_PARAMETER(key='join.resource_type')
+
+        if 'query' not in join_query:
+            raise ERROR_REQUIRED_PARAMETER(key='join.query')
+
+    @staticmethod
+    def _check_concat_query(join_query):
         if 'resource_type' not in join_query:
             raise ERROR_REQUIRED_PARAMETER(key='join.resource_type')
 
