@@ -13,6 +13,10 @@ class ERROR_STATISTICS_JOIN(ERROR_INVALID_ARGUMENT):
     _message = 'Join key dose not exist. (resource_type = {resource_type}, join_keys = {join_keys})'
 
 
+class ERROR_STATISTICS_CONCAT(ERROR_INVALID_ARGUMENT):
+    _message = 'Data concat failed. (reason = {reason})'
+
+
 class ERROR_STATISTICS_INDEX_JOIN(ERROR_INVALID_ARGUMENT):
     _message = 'Index join failed. (reason = {reason})'
 

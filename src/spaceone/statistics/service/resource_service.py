@@ -28,6 +28,7 @@ class ResourceService(BaseService):
                 'resource_type': 'str',
                 'query': 'dict (spaceone.api.core.v1.StatisticsQuery)',
                 'join': 'list',
+                'append': 'list',
                 'formulas': 'list',
                 'domain_id': 'str'
             }
@@ -39,25 +40,28 @@ class ResourceService(BaseService):
         resource_type = params['resource_type']
         query = params.get('query', {})
         distinct = query.get('distinct')
+        extend_data = params.get('extend_data', {})
         join = params.get('join', [])
+        concat = params.get('concat', [])
         formulas = params.get('formulas', [])
         sort = query.get('sort')
         page = query.get('page', {})
         limit = query.get('limit')
-        has_join_or_formula = len(join) > 0 or len(formulas) > 0
+        has_additional_stat = len(extend_data.keys()) > 0 or len(join) > 0 or len(concat) or len(formulas) > 0
 
         if distinct:
-            if has_join_or_formula:
+            if has_additional_stat:
                 raise ERROR_STATISTICS_DISTINCT()
         else:
-            if has_join_or_formula:
+            if has_additional_stat:
                 query['sort'] = None
                 query['page'] = None
                 query['limit'] = None
 
         response = self.resource_mgr.stat(resource_type, query, domain_id)
-        if has_join_or_formula:
+        if has_additional_stat:
             results = response.get('results', [])
-            response = self.resource_mgr.join_and_execute_formula(results, resource_type, query,
-                                                                  join, formulas, sort, page, limit, domain_id)
+            response = self.resource_mgr.execute_additional_stat(results, resource_type, query, extend_data,
+                                                                 join, concat, formulas,
+                                                                 sort, page, limit, domain_id)
         return response
