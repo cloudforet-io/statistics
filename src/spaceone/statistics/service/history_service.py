@@ -47,6 +47,7 @@ class HistoryService(BaseService):
         query = options.get('query', {})
         distinct = query.get('distinct')
         extend_data = options.get('extend_data', {})
+        fill_na = options.get('fill_na', {})
         join = list(map(lambda j: j.to_dict(), options.get('join', [])))
         concat = list(map(lambda a: a.to_dict(), options.get('concat', [])))
         formulas = list(map(lambda f: f.to_dict(), options.get('formulas', [])))
@@ -68,8 +69,8 @@ class HistoryService(BaseService):
         if len(join) > 0 or len(formulas) > 0:
             results = response.get('results', [])
             response = self.resource_mgr.execute_additional_stat(results, resource_type, query,
-                                                                 extend_data, join, concat, formulas,
-                                                                 sort, page, limit, domain_id)
+                                                                 extend_data, join, concat, fill_na,
+                                                                 formulas, sort, page, limit, domain_id)
 
         results = response.get('results', [])
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)

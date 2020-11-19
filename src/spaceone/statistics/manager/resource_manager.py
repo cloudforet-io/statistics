@@ -1,5 +1,6 @@
 import logging
 import pandas as pd
+import numpy as np
 
 from spaceone.core.manager import BaseManager
 from spaceone.statistics.error import *
@@ -29,7 +30,7 @@ class ResourceManager(BaseManager):
             raise ERROR_STATISTICS_QUERY(reason=e)
 
     def execute_additional_stat(self, base_results, base_resource_type, base_query, base_extend_data,
-                                join, concat, formulas, sort, page, limit, domain_id):
+                                join, concat, fill_na, formulas, sort, page, limit, domain_id):
         if len(base_results) == 0:
             base_df = self._generate_empty_data(base_query)
         else:
@@ -38,9 +39,10 @@ class ResourceManager(BaseManager):
         base_df = self._extend_data(base_df, base_extend_data)
         base_df = self._join(base_df, base_resource_type, join, domain_id)
         base_df = self._concat(base_df, concat, domain_id)
-        base_df = base_df.fillna(0)
+        base_df = base_df.fillna(fill_na)
         base_df = self._execute_formula(base_df, formulas)
         base_df = self._sort(base_df, sort)
+        base_df = base_df.replace({np.nan: None})
 
         response = {}
         joined_results = base_df.to_dict('records')
@@ -72,7 +74,7 @@ class ResourceManager(BaseManager):
                 self._check_formula(formula)
                 operator = formula.get('operator', 'EVAL')
                 if operator == 'EVAL':
-                    base_df = self._execute_formula_eval(base_df, formula['name'], formula['formula'])
+                    base_df = self._execute_formula_eval(base_df, formula['formula'])
                 elif operator == 'QUERY':
                     base_df = self._execute_formula_query(base_df, formula['formula'])
 
@@ -88,9 +90,9 @@ class ResourceManager(BaseManager):
         return base_df
 
     @staticmethod
-    def _execute_formula_eval(base_df, name, formula):
+    def _execute_formula_eval(base_df, formula):
         try:
-            base_df[name] = base_df.eval(formula)
+            base_df = base_df.eval(formula)
         except Exception as e:
             raise ERROR_STATISTICS_FORMULA(formula=formula)
 
@@ -148,8 +150,6 @@ class ResourceManager(BaseManager):
             except Exception as e:
                 raise ERROR_STATISTICS_CONCAT(reason=str(e))
 
-        # return base_df
-
     @staticmethod
     def _generate_empty_data(query):
         empty_join_data = {}
@@ -191,9 +191,6 @@ class ResourceManager(BaseManager):
 
         if operator not in ['EVAL', 'QUERY']:
             raise ERROR_INVALID_PARAMETER(key='formulas.operator', reason='The operator only allows EVAL or QUERY.')
-
-        if operator == 'EVAL' and 'name' not in formula:
-            raise ERROR_REQUIRED_PARAMETER(key='formulas.name')
 
         if 'formula' not in formula:
             raise ERROR_REQUIRED_PARAMETER(key='formulas.formula')

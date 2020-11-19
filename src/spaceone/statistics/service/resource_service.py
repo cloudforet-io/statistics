@@ -28,7 +28,9 @@ class ResourceService(BaseService):
                 'resource_type': 'str',
                 'query': 'dict (spaceone.api.core.v1.StatisticsQuery)',
                 'join': 'list',
-                'append': 'list',
+                'concat': 'list',
+                'extend_data': 'dict',
+                'fill_na': 'dict',
                 'formulas': 'list',
                 'domain_id': 'str'
             }
@@ -41,6 +43,7 @@ class ResourceService(BaseService):
         query = params.get('query', {})
         distinct = query.get('distinct')
         extend_data = params.get('extend_data', {})
+        fill_na = params.get('fill_na', {})
         join = params.get('join', [])
         concat = params.get('concat', [])
         formulas = params.get('formulas', [])
@@ -62,6 +65,6 @@ class ResourceService(BaseService):
         if has_additional_stat:
             results = response.get('results', [])
             response = self.resource_mgr.execute_additional_stat(results, resource_type, query, extend_data,
-                                                                 join, concat, formulas,
+                                                                 join, concat, fill_na, formulas,
                                                                  sort, page, limit, domain_id)
         return response
