@@ -39,7 +39,8 @@ class ResourceManager(BaseManager):
         base_df = self._extend_data(base_df, base_extend_data)
         base_df = self._join(base_df, base_resource_type, join, domain_id)
         base_df = self._concat(base_df, concat, domain_id)
-        base_df = base_df.fillna(fill_na)
+        if len(fill_na.keys()) > 0:
+            base_df = base_df.fillna(fill_na)
         base_df = self._execute_formula(base_df, formulas)
         base_df = self._sort(base_df, sort)
         base_df = base_df.replace({np.nan: None})
@@ -146,7 +147,7 @@ class ResourceManager(BaseManager):
             concat_df = self._extend_data(concat_df, concat_query.get('extend_data', {}))
 
             try:
-                return pd.concat([base_df, concat_df])
+                return pd.concat([base_df, concat_df], ignore_index=True)
             except Exception as e:
                 raise ERROR_STATISTICS_CONCAT(reason=str(e))
 
