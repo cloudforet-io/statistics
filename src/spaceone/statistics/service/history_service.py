@@ -100,6 +100,7 @@ class HistoryService(BaseService):
     @transaction
     @check_required(['query', 'domain_id'])
     @append_query_filter(['topic', 'domain_id'])
+    @append_keyword_filter(['topic'])
     def stat(self, params):
         """
         Args:
