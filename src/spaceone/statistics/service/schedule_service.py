@@ -223,6 +223,7 @@ class ScheduleService(BaseService):
         query = options['query']
         distinct = query.get('distinct')
         extend_data = options.get('extend_data', {})
+        fill_na = options.get('fill_na', {})
         join = options.get('join', [])
         concat = options.get('concat', [])
         formulas = options.get('formulas', [])
@@ -243,5 +244,5 @@ class ScheduleService(BaseService):
         response = self.resource_mgr.stat(resource_type, query, domain_id)
         if has_additional_stat:
             results = response.get('results', [])
-            self.resource_mgr.execute_additional_stat(results, resource_type, query, extend_data,
-                                                      join, concat, formulas, sort, page, limit, domain_id)
+            self.resource_mgr.execute_additional_stat(results, resource_type, query, extend_data, join,
+                                                      concat, fill_na, formulas, sort, page, limit, domain_id)
