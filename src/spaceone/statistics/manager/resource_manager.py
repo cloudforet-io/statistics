@@ -147,9 +147,11 @@ class ResourceManager(BaseManager):
             concat_df = self._extend_data(concat_df, concat_query.get('extend_data', {}))
 
             try:
-                return pd.concat([base_df, concat_df], ignore_index=True)
+                base_df = pd.concat([base_df, concat_df], ignore_index=True)
             except Exception as e:
                 raise ERROR_STATISTICS_CONCAT(reason=str(e))
+
+        return base_df
 
     @staticmethod
     def _generate_empty_data(query):
