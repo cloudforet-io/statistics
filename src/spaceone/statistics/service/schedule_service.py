@@ -174,6 +174,7 @@ class ScheduleService(BaseService):
     @transaction
     @check_required(['query', 'domain_id'])
     @append_query_filter(['domain_id'])
+    @append_keyword_filter(['schedule_id', 'topic', 'resource_type'])
     def stat(self, params):
         """
         Args:

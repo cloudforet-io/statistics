@@ -142,7 +142,7 @@ class ResourceManager(BaseManager):
             if len(concat_results) > 0:
                 concat_df = pd.DataFrame(concat_results)
             else:
-                concat_df = self._generate_empty_data(concat_results['query'])
+                concat_df = self._generate_empty_data(concat_query['query'])
 
             concat_df = self._extend_data(concat_df, concat_query.get('extend_data', {}))
 
