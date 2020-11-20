@@ -20,13 +20,23 @@ class JoinQuery(EmbeddedDocument):
     data_source_id = StringField(max_length=40, default=None, null=True)
     resource_type = StringField(max_length=80)
     query = DictField()
+    extend_data = DictField()
+
+    def to_dict(self):
+        return self.to_mongo()
+
+
+class ConcatQuery(EmbeddedDocument):
+    data_source_id = StringField(max_length=40, default=None, null=True)
+    resource_type = StringField(max_length=80)
+    query = DictField()
+    extend_data = DictField()
 
     def to_dict(self):
         return self.to_mongo()
 
 
 class Formula(EmbeddedDocument):
-    name = StringField(max_length=40, default=None, null=True)
     formula = StringField()
     operator = StringField(max_length=40, default='EVAL', choices=('EVAL', 'QUERY'))
 
@@ -38,7 +48,10 @@ class QueryOption(EmbeddedDocument):
     data_source_id = StringField(max_length=40, default=None, null=True)
     resource_type = StringField(max_length=80)
     query = DictField()
+    extend_data = DictField()
+    fill_na = DictField()
     join = ListField(EmbeddedDocumentField(JoinQuery))
+    concat = ListField(EmbeddedDocumentField(ConcatQuery))
     formulas = ListField(EmbeddedDocumentField(Formula))
 
     def to_dict(self):
