@@ -50,7 +50,7 @@ class ResourceService(BaseService):
         sort = query.get('sort')
         page = query.get('page', {})
         limit = query.get('limit')
-        has_additional_stat = len(extend_data.keys()) > 0 or len(join) > 0 or len(concat) or len(formulas) > 0
+        has_additional_stat = len(extend_data.keys()) > 0 or len(join) > 0 or len(concat) > 0 or len(formulas) > 0
 
         if distinct:
             if has_additional_stat:
