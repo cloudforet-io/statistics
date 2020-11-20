@@ -20,6 +20,7 @@ class History(MongoModel):
             '-created_at'
         ],
         'indexes': [
+            'topic',
             'schedule',
             'domain_id',
             'created_at'
