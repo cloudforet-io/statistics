@@ -32,7 +32,7 @@ def _validate_token(token):
             while value is False:
                 uri = token['uri']
                 value = consul_instance.patch_token(uri)
-                if vaule:
+                if value:
                     _LOGGER.warn(f'[_validate_token] token: {value[:30]} uri: {uri}')
                     break
                 _LOGGER.warn(f'[_validate_token] token is not found ... wait')
@@ -52,7 +52,7 @@ class StatHourlyScheduler(HourlyScheduler):
 
     def _init_count(self):
         # get current time
-        cur = datetime.datetime.now()
+        cur = datetime.datetime.utcnow()
         count = {
             'previous': cur,  # Last check_count time
             'index': 0,  # index
@@ -97,7 +97,7 @@ class StatHourlyScheduler(HourlyScheduler):
 
     def check_count(self):
         # check current count is correct or not
-        cur = datetime.datetime.now()
+        cur = datetime.datetime.utcnow()
         hour = cur.hour
         # check
         if (self.count['hour'] + self.config) % 24 != hour:
@@ -116,7 +116,7 @@ class StatHourlyScheduler(HourlyScheduler):
         self.count.update(count)
 
     def _update_count_ended_at(self):
-        cur = datetime.datetime.now()
+        cur = datetime.datetime.utcnow()
         self.count['ended_at'] = cur
 
     def _list_schedule(self, hour, domain_id):
