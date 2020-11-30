@@ -30,7 +30,7 @@ class ScheduleService(BaseService):
                 'topic': 'str',
                 'options': 'dict',
                 'schedule': 'dict',
-                'tags': 'dict',
+                'tags': 'list',
                 'domain_id': 'str'
             }
 
@@ -55,7 +55,7 @@ class ScheduleService(BaseService):
             params (dict): {
                 'schedule_id': 'str',
                 'schedule': 'dict',
-                'tags': 'dict',
+                'tags': 'list',
                 'domain_id': 'str'
             }
 
@@ -148,6 +148,7 @@ class ScheduleService(BaseService):
     @transaction
     @check_required(['domain_id'])
     @append_query_filter(['schedule_id', 'topic', 'state', 'data_source_id', 'resource_type', 'domain_id'])
+    @change_tag_filter('tags')
     @append_keyword_filter(['schedule_id', 'topic', 'resource_type'])
     def list(self, params):
         """ List schedules

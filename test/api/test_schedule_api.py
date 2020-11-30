@@ -129,8 +129,7 @@ class TestScheduleAPI(unittest.TestCase):
                 }],
                 'formulas': [
                     {
-                        'name': 'resource_count',
-                        'formula': 'server_count + cloud_service_count',
+                        'formula': 'resource_count = server_count + cloud_service_count',
                         'operator': 'EVAL'
                     }
                 ]
@@ -141,9 +140,12 @@ class TestScheduleAPI(unittest.TestCase):
                 'minutes': [0, 10, 20, 30, 40, 50],
                 'hours': [0, 6, 12, 18]
             },
-            'tags': {
-                'tag_key': 'tag_value'
-            },
+            'tags': [
+                {
+                    'key': 'tag_key',
+                    'value': 'tag_value'
+                }
+            ],
             'domain_id': utils.generate_id('domain')
         }
         mock_parse_request.return_value = (params, {})
@@ -162,7 +164,7 @@ class TestScheduleAPI(unittest.TestCase):
         self.assertDictEqual(schedule_data['options']['query'], params['options']['query'])
         self.assertListEqual(schedule_data['options']['formulas'], params['options']['formulas'])
         self.assertDictEqual(schedule_data['schedule'], params['schedule'])
-        self.assertDictEqual(MessageToDict(schedule_info.tags), params['tags'])
+        self.assertListEqual(schedule_data['tags'], params['tags'])
         self.assertEqual(schedule_info.domain_id, params['domain_id'])
         self.assertIsNotNone(getattr(schedule_info, 'created_at', None))
 
@@ -175,9 +177,12 @@ class TestScheduleAPI(unittest.TestCase):
             'schedule': {
                 'cron': '* * * * *'
             },
-            'tags': {
-                'update_key': 'update_value'
-            },
+            'tags': [
+                {
+                    'key': 'update_key',
+                    'value': 'update_value'
+                }
+            ],
             'domain_id': utils.generate_id('domain')
         }
         mock_parse_request.return_value = (params, {})
@@ -190,7 +195,7 @@ class TestScheduleAPI(unittest.TestCase):
 
         self.assertIsInstance(schedule_info, schedule_pb2.ScheduleInfo)
         self.assertEqual(schedule_data['schedule'], params['schedule'])
-        self.assertDictEqual(MessageToDict(schedule_info.tags), params['tags'])
+        self.assertListEqual(schedule_data['tags'], params['tags'])
 
     @patch.object(BaseAPI, '__init__', return_value=None)
     @patch.object(Locator, 'get_service', return_value=_MockScheduleService())

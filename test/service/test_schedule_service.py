@@ -151,17 +151,20 @@ class TestScheduleService(unittest.TestCase):
                 }],
                 'formulas': [
                     {
-                        'name': 'resource_count',
-                        'formula': 'server_count + cloud_service_count'
+                        'formula': 'resource_count = server_count + cloud_service_count'
                     }
                 ]
             },
             'schedule': {
                 'hours': [0, 6, 12, 18]
             },
-            'tags': {
-                'key': 'value'
-            },
+            'tags': [
+                {
+                    'key': 'tag_key',
+                    'value': 'tag_value'
+                }
+
+            ],
             'domain_id': utils.generate_id('domain')
         }
 
@@ -181,7 +184,7 @@ class TestScheduleService(unittest.TestCase):
         self.assertIsInstance(schedule_vo.options.formulas[0], Formula)
         self.assertIsInstance(schedule_vo.schedule, Scheduled)
         self.assertEqual(schedule_vo.schedule.hours, params['schedule']['hours'])
-        self.assertEqual(params.get('tags', {}), schedule_vo.tags)
+        self.assertEqual(params.get('tags', {}), schedule_vo.to_dict()['tags'])
         self.assertEqual(params['domain_id'], schedule_vo.domain_id)
 
     @patch.object(MongoModel, 'connect', return_value=None)
@@ -193,9 +196,12 @@ class TestScheduleService(unittest.TestCase):
             'schedule': {
                 'cron': '*/5 * * * *'
             },
-            'tags': {
-                'update_key': 'update_value'
-            },
+            'tags': [
+                {
+                    'key': 'update_key',
+                    'value': 'update_value'
+                }
+            ],
             'domain_id': self.domain_id
         }
 
@@ -210,7 +216,7 @@ class TestScheduleService(unittest.TestCase):
         self.assertEqual(new_schedule_vo.schedule_id, schedule_vo.schedule_id)
         self.assertIsInstance(schedule_vo.schedule, Scheduled)
         self.assertEqual(schedule_vo.schedule.cron, params['schedule']['cron'])
-        self.assertEqual(params.get('tags', {}), schedule_vo.tags)
+        self.assertEqual(params.get('tags', {}), schedule_vo.to_dict()['tags'])
         self.assertEqual(params['domain_id'], schedule_vo.domain_id)
 
     @patch.object(MongoModel, 'connect', return_value=None)
@@ -348,15 +354,15 @@ class TestScheduleService(unittest.TestCase):
 
     @patch.object(MongoModel, 'connect', return_value=None)
     def test_list_schedules_by_tag(self, *args):
-        ScheduleFactory(tags={'tag_key': 'tag_value'}, domain_id=self.domain_id)
+        ScheduleFactory(tags=[{'key': 'tag_key_1', 'value': 'tag_value_1'}], domain_id=self.domain_id)
         schedule_vos = ScheduleFactory.build_batch(9, domain_id=self.domain_id)
         list(map(lambda vo: vo.save(), schedule_vos))
 
         params = {
             'query': {
                 'filter': [{
-                    'k': 'tags.tag_key',
-                    'v': 'tag_value',
+                    'k': 'tags.tag_key_1',
+                    'v': 'tag_value_1',
                     'o': 'eq'
                 }]
             },
