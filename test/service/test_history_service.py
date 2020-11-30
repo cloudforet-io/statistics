@@ -107,8 +107,7 @@ class TestHistoryService(unittest.TestCase):
             }],
             'formulas': [
                 {
-                    'name': 'resource_count',
-                    'formula': 'server_count + cloud_service_count'
+                    'formula': 'resource_count = server_count + cloud_service_count'
                 }
             ]
         })

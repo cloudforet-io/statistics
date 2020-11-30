@@ -45,8 +45,7 @@ class FormulaFactory(factory.mongoengine.MongoEngineFactory):
     class Meta:
         model = Formula
 
-    name = factory.LazyAttribute(lambda o: utils.random_string())
-    formula = 'a + (b / c)'
+    formula = 'z = a + (b / c)'
 
 
 class QueryOptionFactory(factory.mongoengine.MongoEngineFactory):
@@ -93,9 +92,12 @@ class ScheduleFactory(factory.mongoengine.MongoEngineFactory):
     state = 'ENABLED'
     options = factory.SubFactory(QueryOptionFactory)
     schedule = factory.SubFactory(ScheduledFactory)
-    tags = {
-        'key': 'value'
-    }
+    tags = [
+        {
+            'key': 'tag_key',
+            'value': 'tag_value'
+        }
+    ]
     domain_id = utils.generate_id('domain')
     created_at = factory.Faker('date_time')
     last_scheduled_at = None

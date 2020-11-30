@@ -1,7 +1,8 @@
 import functools
+from spaceone.api.core.v1 import tag_pb2
 from spaceone.api.statistics.v1 import schedule_pb2
 from spaceone.core.pygrpc.message_type import *
-from spaceone.statistics.model.schedule_model import Schedule, Scheduled, JoinQuery, Formula, QueryOption
+from spaceone.statistics.model.schedule_model import Schedule, Scheduled
 
 __all__ = ['ScheduleInfo', 'SchedulesInfo']
 
@@ -27,7 +28,7 @@ def ScheduleInfo(schedule_vo: Schedule, minimal=False):
         info.update({
             'options': change_struct_type(schedule_vo.options.to_dict()) if schedule_vo.options else None,
             'schedule': ScheduledInfo(schedule_vo.schedule) if schedule_vo.schedule else None,
-            'tags': change_struct_type(schedule_vo.tags),
+            'tags': [tag_pb2.Tag(key=tag.key, value=tag.value) for tag in schedule_vo.tags],
             'domain_id': schedule_vo.domain_id,
             'created_at': change_timestamp_type(schedule_vo.created_at),
             'last_scheduled_at': change_timestamp_type(schedule_vo.last_scheduled_at)
