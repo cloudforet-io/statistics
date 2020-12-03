@@ -13,3 +13,7 @@ venv
 local-conf.yml
 test/reports
 test/_trial_temp
+
+.venv/
+
+src/celerybeat-schedule

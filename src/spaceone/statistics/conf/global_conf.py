@@ -32,3 +32,4 @@ SCHEDULERS = {}
 WORKERS = {}
 TOKEN = ""
 TOKEN_INFO = {}
+CELERY = {}
