@@ -40,7 +40,7 @@ GLOBAL:
       broker_url: redis://localhost:6379 
     schedules:
       stat_scheduler:
-        task: spaceone.statistics.tasks.stat_hourly_scheduler.stat_hour_scheduler
+        task: spaceone.statistics.task.stat_hourly_scheduler.stat_hour_scheduler
         rule_type: interval
         rule:
           period: hours
