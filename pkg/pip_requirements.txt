@@ -1,4 +1,4 @@
-spaceone-core
+spaceone-core==1.5.3.dev6
 spaceone-api
 mongoengine
 pandas
