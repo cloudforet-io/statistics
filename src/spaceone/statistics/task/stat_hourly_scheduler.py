@@ -8,7 +8,7 @@ from celery import shared_task
 from spaceone.core import config
 from spaceone.core.auth.jwt.jwt_util import JWTUtil
 from spaceone.core.celery.tasks import BaseSchedulerTask
-from spaceone.core.locator import Locator
+from spaceone.core.locator import ERROR_CONFIGURATION, Locator
 
 __all__ = ['StatHourlyScheduler']
 
@@ -88,11 +88,23 @@ def _validate_token(token):
 
 
 class StatHourlyScheduler():
-    def __init__(self, ):
+    def __init__(self, interval=1, ):
+        self.config = self.parse_config(interval)
+
         self.count = self._init_count()
         self.locator = Locator()
         self.TOKEN = self._update_token()
         self.domain_id = _get_domain_id_from_token(self.TOKEN)
+
+    def parse_config(self, expr):
+        """ expr
+          format: integer (hour)
+        """
+
+        if not isinstance(expr, int):
+            _LOGGER.error(f'[parse_config] Wrong configuration')
+            raise ERROR_CONFIGURATION(key='interval')
+        return expr
 
     def _init_count(self):
         # get current time
@@ -224,6 +236,6 @@ class StatHourlyScheduler():
         return result
 
 
-@shared_task(base=BaseSchedulerTask, )
-def stat_hour_scheduler():
+@shared_task(base=BaseSchedulerTask,bind=True )
+def stat_hour_scheduler(self):
     return StatHourlyScheduler().create_task()
