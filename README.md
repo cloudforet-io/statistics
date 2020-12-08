@@ -82,7 +82,7 @@ GLOBAL:
   TOKEN: xxx.xxx.xxx # spaceon token
 
   CELERY:
-    mode: worker
+    mode: WORKER
     config:
       broker_url: redis://localhost:6379
 
