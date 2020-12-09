@@ -33,7 +33,17 @@ GLOBAL:
       socket_connect_timeout: 10
 
   TOKEN: xxx.xxx.xxx # spaceon token
-
+  
+  LOG:
+    loggers:
+      spaceone:
+        handlers:
+          - console
+          - file
+      celery: # please set celery logger
+        handlers:
+          - console
+          - file
   CELERY:
     mode: BEAT
     config:
@@ -80,6 +90,13 @@ GLOBAL:
       socket_connect_timeout: 10
 
   TOKEN: xxx.xxx.xxx # spaceon token
+  
+  LOG:
+    loggers:
+      spaceone:
+        handlers:
+          - console
+          - file
 
   CELERY:
     mode: WORKER

@@ -19,6 +19,11 @@ GLOBAL:
       encoding: utf-8
       socket_timeout: 10
       socket_connect_timeout: 10
+  LOG:
+    loggers:
+      spaceone:
+        handlers:
+          - console
 
   TOKEN: xxx.xxx.xxx
 
