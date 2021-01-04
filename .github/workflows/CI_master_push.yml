@@ -3,6 +3,7 @@ on:
   push:
     paths-ignore:
       - '.github/**'
+      - 'deploy/**'
     branches:
       - master
 
