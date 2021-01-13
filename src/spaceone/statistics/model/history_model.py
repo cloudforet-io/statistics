@@ -6,7 +6,7 @@ from spaceone.statistics.model.schedule_model import Schedule
 
 class History(MongoModel):
     topic = StringField(max_length=255)
-    schedule = ReferenceField('Schedule', reverse_delete_rule=CASCADE)
+    schedule = ReferenceField('Schedule', reverse_delete_rule=NULLIFY)
     values = DictField()
     domain_id = StringField(max_length=255)
     created_at = DateTimeField(required=True)
