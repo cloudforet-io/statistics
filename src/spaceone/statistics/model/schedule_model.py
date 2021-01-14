@@ -81,12 +81,6 @@ class Schedule(MongoModel):
             'tags',
             'last_scheduled_at'
         ],
-        'exact_fields': [
-            'schedule_id',
-            'state',
-            'options.data_source_id',
-            'domain_id'
-        ],
         'minimal_fields': [
             'schedule_id',
             'topic',
@@ -103,5 +97,6 @@ class Schedule(MongoModel):
             'options.resource_type',
             'domain_id',
             ('tags.key', 'tags.value')
-        ]
+        ],
+        'auto_create_index': False
     }
