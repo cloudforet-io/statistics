@@ -13,9 +13,6 @@ class History(MongoModel):
 
     meta = {
         'updatable_fields': [],
-        'exact_fields': [
-            'domain_id'
-        ],
         'ordering': [
             '-created_at'
         ],
@@ -24,5 +21,6 @@ class History(MongoModel):
             'schedule',
             'domain_id',
             'created_at'
-        ]
+        ],
+        'auto_create_index': False
     }
