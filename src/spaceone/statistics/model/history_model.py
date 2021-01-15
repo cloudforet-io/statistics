@@ -21,6 +21,5 @@ class History(MongoModel):
             'schedule',
             'domain_id',
             'created_at'
-        ],
-        'auto_create_index': False
+        ]
     }
