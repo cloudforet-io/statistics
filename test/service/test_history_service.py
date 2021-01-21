@@ -25,6 +25,8 @@ class TestHistoryService(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config.init_conf(package='spaceone.statistics')
+        config.set_service_config()
+        config.set_global(DATABASE_SUPPORT_AWS_DOCUMENT_DB=True)
         connect('test', host='mongomock://localhost')
 
         cls.domain_id = utils.generate_id('domain')
