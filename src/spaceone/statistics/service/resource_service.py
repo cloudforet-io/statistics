@@ -10,6 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @authentication_handler
 @authorization_handler
+@mutation_handler
 @event_handler
 class ResourceService(BaseService):
 
@@ -17,7 +18,7 @@ class ResourceService(BaseService):
         super().__init__(*args, **kwargs)
         self.resource_mgr: ResourceManager = self.locator.get_manager('ResourceManager')
 
-    @transaction
+    @transaction(append_meta={'authorization.scope': 'DOMAIN'})
     @check_required(['resource_type', 'query', 'domain_id'])
     def stat(self, params):
         """Statistics query to resource

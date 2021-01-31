@@ -11,6 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 @authentication_handler
 @authorization_handler
+@mutation_handler
 @event_handler
 class HistoryService(BaseService):
 
@@ -19,7 +20,7 @@ class HistoryService(BaseService):
         self.resource_mgr: ResourceManager = self.locator.get_manager('ResourceManager')
         self.history_mgr: HistoryManager = self.locator.get_manager('HistoryManager')
 
-    @transaction
+    @transaction(append_meta={'authorization.scope': 'DOMAIN'})
     @check_required(['schedule_id', 'domain_id'])
     def create(self, params):
         """Statistics query to resource
@@ -76,9 +77,12 @@ class HistoryService(BaseService):
         results = response.get('results', [])
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)
 
-    @transaction
+    @transaction(append_meta={
+        'authorization.scope': 'PROJECT',
+        'mutation.append_parameter': {'user_projects': 'authorization.projects'}
+    })
     @check_required(['domain_id'])
-    @append_query_filter(['topic', 'domain_id'])
+    @append_query_filter(['topic', 'domain_id', 'user_projects'])
     @append_keyword_filter(['topic'])
     def list(self, params):
         """ List history
@@ -87,7 +91,8 @@ class HistoryService(BaseService):
             params (dict): {
                 'topic': 'str',
                 'domain_id': 'str',
-                'query': 'dict (spaceone.api.core.v1.Query)'
+                'query': 'dict (spaceone.api.core.v1.Query)',
+                'user_projects': 'list', // from meta
             }
 
         Returns:
@@ -98,9 +103,12 @@ class HistoryService(BaseService):
         query = params.get('query', {})
         return self.history_mgr.list_history(query)
 
-    @transaction
+    @transaction(append_meta={
+        'authorization.scope': 'PROJECT',
+        'mutation.append_parameter': {'user_projects': 'authorization.projects'}
+    })
     @check_required(['query', 'domain_id'])
-    @append_query_filter(['topic', 'domain_id'])
+    @append_query_filter(['topic', 'domain_id', 'user_projects'])
     @append_keyword_filter(['topic'])
     def stat(self, params):
         """
@@ -108,7 +116,8 @@ class HistoryService(BaseService):
             params (dict): {
                 'topic': 'str',
                 'domain_id': 'str',
-                'query': 'dict (spaceone.api.core.v1.StatisticsQuery)'
+                'query': 'dict (spaceone.api.core.v1.StatisticsQuery)',
+                'user_projects': 'list', // from meta
             }
 
         Returns:

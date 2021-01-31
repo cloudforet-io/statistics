@@ -13,6 +13,9 @@ class History(MongoModel):
 
     meta = {
         'updatable_fields': [],
+        'change_query_keys': {
+            'user_projects': 'values.project_id'
+        },
         'ordering': [
             '-created_at'
         ],
