@@ -85,7 +85,13 @@ class StatHourlyScheduler(HourlyScheduler):
                 # ERROR LOGGING
                 pass
             # Loop all domain, then find schedule
-            metadata = {'token': self.TOKEN, 'domain_id': self.domain_id}
+            metadata = {'token': self.TOKEN,
+                        'service': 'statistics',
+                        'resource': 'Schedule',
+                        'verb': 'list_domains',
+                        'authorization': True,
+                        'mutation': True,
+                        'domain_id': self.domain_id}
             schedule_svc = self.locator.get_service('ScheduleService', metadata)
             params = {}
             resp = schedule_svc.list_domains(params)
@@ -126,7 +132,13 @@ class StatHourlyScheduler(HourlyScheduler):
                             'filter': [{'k': 'schedule.hours', 'v': hour, 'o': 'eq'}],
                             },
                   'domain_id': domain_id}
-        metadata = {'token': self.TOKEN, 'domain_id': self.domain_id}
+        metadata = {'token': self.TOKEN,
+                    'service': 'statistics',
+                    'resource': 'Schedule',
+                    'verb': 'list',
+                    'authorization': True,
+                    'mutation': True,
+                    'domain_id': self.domain_id}
         schedule_svc = self.locator.get_service('ScheduleService', metadata)
         schedules, total_count = schedule_svc.list(params)
         _LOGGER.debug(f'[_list_schedule] schedules: {schedules}, total_count: {total_count}')
@@ -139,7 +151,13 @@ class StatHourlyScheduler(HourlyScheduler):
             jobs: SpaceONE Pipeline Template
         """
         _LOGGER.debug(f'[_create_job_request] domain: {domain}')
-        metadata = {'token': self.TOKEN, 'domain_id': self.domain_id}
+        metadata = {'token': self.TOKEN,
+                    'service': 'statistics',
+                    'resource': 'History',
+                    'verb': 'create',
+                    'authorization': True,
+                    'mutation': True,
+                    'domain_id': self.domain_id}
         schedules = self._list_schedule(self.count['hour'], domain['domain_id'])
         sched_jobs = []
         for schedule in schedules:
