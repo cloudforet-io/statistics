@@ -65,74 +65,99 @@ class TestScheduleAPI(unittest.TestCase):
         params = {
             'topic': utils.random_string(),
             'options': {
-                'data_source_id': utils.generate_id('ds'),
-                'resource_type': 'identity.Project',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }, {
-                                'key': 'name',
-                                'name': 'project_name'
-                            }, {
-                                'key': 'project_group.name',
-                                'name': 'project_group_name'
-                            }],
-                        }
-                    },
-                    'sort': {
-                        'name': 'resource_count',
-                        'desc': True
-                    },
-                    'page': {
-                        'limit': 5
-                    }
-                },
-                'join': [{
-                    'keys': ['project_id'],
-                    'type': 'LEFT',
-                    'resource_type': 'inventory.Server',
-                    'query': {
-                        'aggregate': {
-                            'group': {
-                                'keys': [{
-                                    'key': 'project_id',
-                                    'name': 'project_id'
-                                }],
-                                'fields': [{
-                                    'operator': 'count',
-                                    'name': 'server_count'
-                                }]
-                            }
-                        }
-                    }
-                }, {
-                    'keys': ['project_id'],
-                    'type': 'LEFT',
-                    'resource_type': 'inventory.CloudService',
-                    'query': {
-                        'aggregate': {
-                            'group': {
-                                'keys': [{
-                                    'key': 'project_id',
-                                    'name': 'project_id'
-                                }],
-                                'fields': [{
-                                    'operator': 'count',
-                                    'name': 'cloud_service_count'
-                                }]
-                            }
-                        }
-                    }
-                }],
-                'formulas': [
+                'aggregate': [
                     {
-                        'formula': 'resource_count = server_count + cloud_service_count',
-                        'operator': 'EVAL'
+                        'query': {
+                            'resource_type': 'identity.Project',
+                            'query': {
+                                'aggregate': [
+                                    {
+                                        'group': {
+                                            'keys': [
+                                                {
+                                                    'key': 'project_id',
+                                                    'name': 'project_id'
+                                                },
+                                                {
+                                                    'key': 'name',
+                                                    'name': 'project_name'
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        'join': {
+                            'resource_type': 'inventory.Server',
+                            'type': 'LEFT',
+                            'keys': ['project_id'],
+                            'query': {
+                                'aggregate': [
+                                    {
+                                        'group': {
+                                            'keys': [
+                                                {
+                                                    'key': 'project_id',
+                                                    'name': 'project_id'
+                                                }
+                                            ],
+                                            'fields': [
+                                                {
+                                                    'operator': 'count',
+                                                    'name': 'server_count'
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        'join': {
+                            'resource_type': 'inventory.CloudService',
+                            'type': 'LEFT',
+                            'keys': ['project_id'],
+                            'query': {
+                                'aggregate': [
+                                    {
+                                        'group': {
+                                            'keys': [
+                                                {
+                                                    'key': 'project_id',
+                                                    'name': 'project_id'
+                                                }
+                                            ],
+                                            'fields': [
+                                                {
+                                                    'operator': 'count',
+                                                    'name': 'cloud_service_count'
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        'formula': {
+                            'eval': 'resource_count = server_count + cloud_service_count'
+                        }
+                    },
+                    {
+                        'sort': {
+                            'key': 'resource_count',
+                            'desc': True
+                        }
                     }
-                ]
+                ],
+                'page': {
+                    'limit': 5
+                }
             },
             'schedule': {
                 'cron': '*/5 * * * *',
@@ -159,10 +184,7 @@ class TestScheduleAPI(unittest.TestCase):
         self.assertIsInstance(schedule_info, schedule_pb2.ScheduleInfo)
         self.assertEqual(schedule_info.topic, params['topic'])
         self.assertEqual(schedule_info.state, schedule_pb2.ScheduleInfo.State.ENABLED)
-        self.assertEqual(schedule_data['options']['data_source_id'], params['options']['data_source_id'])
-        self.assertEqual(schedule_data['options']['resource_type'], params['options']['resource_type'])
-        self.assertDictEqual(schedule_data['options']['query'], params['options']['query'])
-        self.assertListEqual(schedule_data['options']['formulas'], params['options']['formulas'])
+        self.assertEqual(schedule_data['options'], params['options'])
         self.assertDictEqual(schedule_data['schedule'], params['schedule'])
         self.assertListEqual(schedule_data['tags'], params['tags'])
         self.assertEqual(schedule_info.domain_id, params['domain_id'])

@@ -33,20 +33,19 @@ class TestServiceConnector(unittest.TestCase):
 
     def test_stat_identity_project(self):
         query = {
-            'aggregate': {
-                'group': {
-                    'keys': [{
-                        'key': 'project_id',
-                        'name': 'project_id'
-                    }, {
-                        'key': 'name',
-                        'name': 'project_name'
-                    }, {
-                        'key': 'project_group.name',
-                        'name': 'project_group_name'
-                    }]
+            'aggregate': [
+                {
+                    'group': {
+                        'keys': [{
+                            'key': 'project_id',
+                            'name': 'project_id'
+                        }, {
+                            'key': 'name',
+                            'name': 'project_name'
+                        }]
+                    }
                 }
-            },
+            ],
             'page': {
                 'start': 3,
                 'limit': 3
@@ -62,7 +61,7 @@ class TestServiceConnector(unittest.TestCase):
                 'v': None,
                 'o': 'not'
             }],
-            'aggregate': {
+            'aggregate': [{
                 'group': {
                     'keys': [{
                         'key': 'project_id',
@@ -77,11 +76,12 @@ class TestServiceConnector(unittest.TestCase):
                         'name': 'total_core'
                     }]
                 }
-            },
-            'sort': {
-                'name': 'server_count',
-                'desc': True
-            },
+            }, {
+                'sort': {
+                    'key': 'server_count',
+                    'desc': True
+                }
+            }],
             'page': {
                 'limit': 2
             }
@@ -96,7 +96,7 @@ class TestServiceConnector(unittest.TestCase):
                 'v': None,
                 'o': 'not'
             }],
-            'aggregate': {
+            'aggregate': [{
                 'group': {
                     'keys': [{
                         'key': 'project_id',
@@ -111,11 +111,12 @@ class TestServiceConnector(unittest.TestCase):
                         'name': 'total_core'
                     }]
                 }
-            },
-            'sort': {
-                'name': 'server_count',
-                'desc': True
-            }
+            }, {
+                'sort': {
+                    'key': 'server_count',
+                    'desc': True
+                }
+            }],
         }
         response = self.service_connector.stat_resource('inventory', 'Server', query, self.domain_id)
         print_data(response, 'test_stat_inventory_server_per_project')
@@ -127,7 +128,7 @@ class TestServiceConnector(unittest.TestCase):
                 'v': None,
                 'o': 'not'
             }],
-            'aggregate': {
+            'aggregate': [{
                 'group': {
                     'keys': [{
                         'key': 'data.compute.region_name',
@@ -141,18 +142,19 @@ class TestServiceConnector(unittest.TestCase):
                         'name': 'server_count'
                     }]
                 }
-            },
-            'sort': {
-                'name': 'server_count',
-                'desc': True
-            }
+            }, {
+                'sort': {
+                    'key': 'server_count',
+                    'desc': True
+                }
+            }]
         }
         response = self.service_connector.stat_resource('inventory', 'Server', query, self.domain_id)
         print_data(response, 'test_stat_inventory_server_per_region')
 
     def test_stat_inventory_server_per_instance_type(self):
         query = {
-            'aggregate': {
+            'aggregate': [{
                 'group': {
                     'keys': [{
                         'key': 'data.compute.instance_type',
@@ -167,11 +169,12 @@ class TestServiceConnector(unittest.TestCase):
                         'name': 'total_core'
                     }]
                 }
-            },
-            'sort': {
-                'name': 'server_count',
-                'desc': True
-            }
+            }, {
+                'sort': {
+                    'key': 'server_count',
+                    'desc': True
+                }
+            }]
         }
         response = self.service_connector.stat_resource('inventory', 'Server', query, self.domain_id)
         print_data(response, 'test_stat_inventory_server_per_instance_type')
@@ -183,7 +186,7 @@ class TestServiceConnector(unittest.TestCase):
             #     'v': None,
             #     'o': 'not'
             # }],
-            'aggregate': {
+            'aggregate': [{
                 'group': {
                     'keys': [{
                         'key': 'data.region_name',
@@ -194,18 +197,19 @@ class TestServiceConnector(unittest.TestCase):
                         'name': 'cloud_service_count'
                     }]
                 }
-            },
-            'sort': {
-                'name': 'cloud_service_count',
-                'desc': True
-            }
+            }, {
+                'sort': {
+                    'key': 'cloud_service_count',
+                    'desc': True
+                }
+            }]
         }
         response = self.service_connector.stat_resource('inventory', 'CloudService', query, self.domain_id)
         print_data(response, 'test_stat_inventory_cloud_service_per_region')
 
     def test_stat_inventory_cloud_service_per_project(self):
         query = {
-            'aggregate': {
+            'aggregate': [{
                 'group': {
                     'keys': [{
                         'key': 'project_id',
@@ -216,18 +220,19 @@ class TestServiceConnector(unittest.TestCase):
                         'name': 'cloud_service_count'
                     }]
                 }
-            },
-            'sort': {
-                'name': 'cloud_service_count',
-                'desc': True
-            }
+            }, {
+                'sort': {
+                    'key': 'cloud_service_count',
+                    'desc': True
+                }
+            }]
         }
         response = self.service_connector.stat_resource('inventory', 'CloudService', query, self.domain_id)
         print_data(response, 'test_stat_inventory_cloud_service_per_project')
 
     def test_base_query(self):
         query = {
-            "aggregate": {
+            "aggregate": [{
                 "group": {
                     "keys": [
                         {
@@ -242,7 +247,7 @@ class TestServiceConnector(unittest.TestCase):
                         }
                     ]
                 }
-            },
+            }],
             'page': {
                 'start': 3,
                 'limit': 5
