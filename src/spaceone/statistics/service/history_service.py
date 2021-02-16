@@ -41,38 +41,12 @@ class HistoryService(BaseService):
         schedule_id = params['schedule_id']
 
         schedule_vo = schedule_mgr.get_schedule(schedule_id, domain_id, ['topic', 'options'])
-        schedule_data = schedule_vo.to_dict()
-        topic = schedule_data['topic']
-        options = schedule_data['options']
-        resource_type = options['resource_type']
-        query = options.get('query', {})
-        distinct = query.get('distinct')
-        extend_data = options.get('extend_data', {})
-        fill_na = options.get('fill_na', {})
-        join = list(map(lambda j: j.to_dict(), options.get('join', [])))
-        concat = list(map(lambda a: a.to_dict(), options.get('concat', [])))
-        formulas = list(map(lambda f: f.to_dict(), options.get('formulas', [])))
-        sort = query.get('sort')
-        page = query.get('page', {})
-        limit = query.get('limit')
+        topic = schedule_vo.topic
+        options = schedule_vo.options
+        aggregate = options.get('aggregate', [])
+        page = params.get('page', {})
 
-        has_additional_stat = len(extend_data.keys()) > 0 or len(join) > 0 or len(concat) > 0 or len(formulas) > 0
-
-        if distinct:
-            if has_additional_stat:
-                raise ERROR_STATISTICS_DISTINCT()
-        else:
-            if has_additional_stat:
-                query['sort'] = None
-                query['page'] = None
-                query['limit'] = None
-
-        response = self.resource_mgr.stat(resource_type, query, domain_id)
-        if has_additional_stat:
-            results = response.get('results', [])
-            response = self.resource_mgr.execute_additional_stat(results, resource_type, query,
-                                                                 extend_data, join, concat, fill_na,
-                                                                 formulas, sort, page, limit, domain_id)
+        response = self.resource_mgr.stat(aggregate, page, domain_id)
 
         results = response.get('results', [])
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)

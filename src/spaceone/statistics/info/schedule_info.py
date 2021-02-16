@@ -26,7 +26,7 @@ def ScheduleInfo(schedule_vo: Schedule, minimal=False):
 
     if not minimal:
         info.update({
-            'options': change_struct_type(schedule_vo.options.to_dict()) if schedule_vo.options else None,
+            'options': change_struct_type(schedule_vo.options) if schedule_vo.options else None,
             'schedule': ScheduledInfo(schedule_vo.schedule) if schedule_vo.schedule else None,
             'tags': [tag_pb2.Tag(key=tag.key, value=tag.value) for tag in schedule_vo.tags],
             'domain_id': schedule_vo.domain_id,
