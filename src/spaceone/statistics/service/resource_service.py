@@ -19,53 +19,22 @@ class ResourceService(BaseService):
         self.resource_mgr: ResourceManager = self.locator.get_manager('ResourceManager')
 
     @transaction(append_meta={'authorization.scope': 'DOMAIN'})
-    @check_required(['resource_type', 'query', 'domain_id'])
+    @check_required(['aggregate', 'domain_id'])
     def stat(self, params):
         """Statistics query to resource
 
         Args:
             params (dict): {
-                'data_source_id': 'str',
-                'resource_type': 'str',
-                'query': 'dict (spaceone.api.core.v1.StatisticsQuery)',
-                'join': 'list',
-                'concat': 'list',
-                'extend_data': 'dict',
-                'fill_na': 'dict',
-                'formulas': 'list',
+                'aggregate': 'list',
+                'page': 'dict',
                 'domain_id': 'str'
             }
 
         Returns:
             stat_info (object)
         """
+        aggregate = params.get('aggregate', [])
+        page = params.get('page', {})
         domain_id = params['domain_id']
-        resource_type = params['resource_type']
-        query = params.get('query', {})
-        distinct = query.get('distinct')
-        extend_data = params.get('extend_data', {})
-        fill_na = params.get('fill_na', {})
-        join = params.get('join', [])
-        concat = params.get('concat', [])
-        formulas = params.get('formulas', [])
-        sort = query.get('sort')
-        page = query.get('page', {})
-        limit = query.get('limit')
-        has_additional_stat = len(extend_data.keys()) > 0 or len(join) > 0 or len(concat) > 0 or len(formulas) > 0
 
-        if distinct:
-            if has_additional_stat:
-                raise ERROR_STATISTICS_DISTINCT()
-        else:
-            if has_additional_stat:
-                query['sort'] = None
-                query['page'] = None
-                query['limit'] = None
-
-        response = self.resource_mgr.stat(resource_type, query, domain_id)
-        if has_additional_stat:
-            results = response.get('results', [])
-            response = self.resource_mgr.execute_additional_stat(results, resource_type, query, extend_data,
-                                                                 join, concat, fill_na, formulas,
-                                                                 sort, page, limit, domain_id)
-        return response
+        return self.resource_mgr.stat(aggregate, page, domain_id)
