@@ -10,7 +10,7 @@ from spaceone.core.model.mongo_model import MongoModel
 from spaceone.core.transaction import Transaction
 from spaceone.statistics.error import *
 from spaceone.statistics.service import ScheduleService
-from spaceone.statistics.model.schedule_model import Schedule, JoinQuery, Formula, Scheduled, QueryOption
+from spaceone.statistics.model.schedule_model import Schedule, Scheduled
 from spaceone.statistics.info.schedule_info import *
 from spaceone.statistics.info.common_info import StatisticsInfo
 from spaceone.statistics.connector.service_connector import ServiceConnector
@@ -51,16 +51,13 @@ class TestScheduleService(unittest.TestCase):
             {
                 'results': [{
                     'project_id': 'project-123',
-                    'project_name': 'ncsoft',
-                    'project_group_name': 'game'
+                    'project_name': 'ncsoft'
                 }, {
                     'project_id': 'project-456',
-                    'project_name': 'nexon',
-                    'project_group_name': 'game'
+                    'project_name': 'nexon'
                 }, {
                     'project_id': 'project-789',
-                    'project_name': 'netmarble',
-                    'project_group_name': 'game'
+                    'project_name': 'netmarble'
                 }]
             }, {
                 'results': [{
@@ -90,70 +87,99 @@ class TestScheduleService(unittest.TestCase):
         params = {
             'topic': 'project_server_and_cloud_service_count',
             'options': {
-                'resource_type': 'identity.Project',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }, {
-                                'key': 'name',
-                                'name': 'project_name'
-                            }, {
-                                'key': 'project_group.name',
-                                'name': 'project_group_name'
-                            }],
-                        }
-                    },
-                    'sort': {
-                        'name': 'resource_count',
-                        'desc': True
-                    },
-                    'page': {
-                        'limit': 5
-                    }
-                },
-                'join': [{
-                    'keys': ['project_id'],
-                    'resource_type': 'inventory.Server',
-                    'query': {
-                        'aggregate': {
-                            'group': {
-                                'keys': [{
-                                    'key': 'project_id',
-                                    'name': 'project_id'
-                                }],
-                                'fields': [{
-                                    'operator': 'count',
-                                    'name': 'server_count'
-                                }]
-                            }
-                        }
-                    }
-                }, {
-                    'keys': ['project_id'],
-                    'resource_type': 'inventory.CloudService',
-                    'query': {
-                        'aggregate': {
-                            'group': {
-                                'keys': [{
-                                    'key': 'project_id',
-                                    'name': 'project_id'
-                                }],
-                                'fields': [{
-                                    'operator': 'count',
-                                    'name': 'cloud_service_count'
-                                }]
-                            }
-                        }
-                    }
-                }],
-                'formulas': [
+                'aggregate': [
                     {
-                        'formula': 'resource_count = server_count + cloud_service_count'
+                        'query': {
+                            'resource_type': 'identity.Project',
+                            'query': {
+                                'aggregate': [
+                                    {
+                                        'group': {
+                                            'keys': [
+                                                {
+                                                    'key': 'project_id',
+                                                    'name': 'project_id'
+                                                },
+                                                {
+                                                    'key': 'name',
+                                                    'name': 'project_name'
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        'join': {
+                            'resource_type': 'inventory.Server',
+                            'type': 'LEFT',
+                            'keys': ['project_id'],
+                            'query': {
+                                'aggregate': [
+                                    {
+                                        'group': {
+                                            'keys': [
+                                                {
+                                                    'key': 'project_id',
+                                                    'name': 'project_id'
+                                                }
+                                            ],
+                                            'fields': [
+                                                {
+                                                    'operator': 'count',
+                                                    'name': 'server_count'
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        'join': {
+                            'resource_type': 'inventory.CloudService',
+                            'type': 'LEFT',
+                            'keys': ['project_id'],
+                            'query': {
+                                'aggregate': [
+                                    {
+                                        'group': {
+                                            'keys': [
+                                                {
+                                                    'key': 'project_id',
+                                                    'name': 'project_id'
+                                                }
+                                            ],
+                                            'fields': [
+                                                {
+                                                    'operator': 'count',
+                                                    'name': 'cloud_service_count'
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        'formula': {
+                            'eval': 'resource_count = server_count + cloud_service_count'
+                        }
+                    },
+                    {
+                        'sort': {
+                            'key': 'resource_count',
+                            'desc': True
+                        }
                     }
-                ]
+                ],
+                'page': {
+                    'limit': 5
+                }
             },
             'schedule': {
                 'hours': [0, 6, 12, 18]
@@ -178,11 +204,7 @@ class TestScheduleService(unittest.TestCase):
         self.assertIsInstance(schedule_vo, Schedule)
         self.assertEqual(params['topic'], schedule_vo.topic)
         self.assertEqual('ENABLED', schedule_vo.state)
-        self.assertEqual(schedule_vo.options.resource_type, params['options']['resource_type'])
-        self.assertDictEqual(schedule_vo.options.query, params['options']['query'])
-        self.assertIsInstance(schedule_vo.options.join[0], JoinQuery)
-        self.assertIsInstance(schedule_vo.options.formulas[0], Formula)
-        self.assertIsInstance(schedule_vo.schedule, Scheduled)
+        self.assertEqual(schedule_vo.options, params['options'])
         self.assertEqual(schedule_vo.schedule.hours, params['schedule']['hours'])
         self.assertEqual(params.get('tags', {}), schedule_vo.to_dict()['tags'])
         self.assertEqual(params['domain_id'], schedule_vo.domain_id)
@@ -386,7 +408,7 @@ class TestScheduleService(unittest.TestCase):
         params = {
             'domain_id': self.domain_id,
             'query': {
-                'aggregate': {
+                'aggregate': [{
                     'group': {
                         'keys': [{
                             'key': 'schedule_id',
@@ -397,11 +419,12 @@ class TestScheduleService(unittest.TestCase):
                             'name': 'Count'
                         }]
                     }
-                },
-                'sort': {
-                    'name': 'Count',
-                    'desc': True
-                }
+                }, {
+                    'sort': {
+                        'key': 'Count',
+                        'desc': True
+                    }
+                }]
             }
         }
 

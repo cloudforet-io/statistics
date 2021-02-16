@@ -48,84 +48,112 @@ class TestHistoryService(unittest.TestCase):
     @patch.object(ServiceConnector, 'stat_resource')
     def test_create_history(self, mock_stat_resource, *args):
         new_schedule_vo = ScheduleFactory(domain_id=self.domain_id, options={
-            'resource_type': 'identity.Project',
-            'query': {
-                'aggregate': {
-                    'group': {
-                        'keys': [{
-                            'key': 'project_id',
-                            'name': 'project_id'
-                        }, {
-                            'key': 'name',
-                            'name': 'project_name'
-                        }, {
-                            'key': 'project_group.name',
-                            'name': 'project_group_name'
-                        }],
-                    }
-                },
-                'sort': {
-                    'name': 'resource_count',
-                    'desc': True
-                },
-                'limit': 5
-            },
-            'join': [{
-                'keys': ['project_id'],
-                'resource_type': 'inventory.Server',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }],
-                            'fields': [{
-                                'operator': 'count',
-                                'name': 'server_count'
-                            }]
-                        }
-                    }
-                }
-            }, {
-                'keys': ['project_id'],
-                'resource_type': 'inventory.CloudService',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }],
-                            'fields': [{
-                                'operator': 'count',
-                                'name': 'cloud_service_count'
-                            }]
-                        }
-                    }
-                }
-            }],
-            'formulas': [
+            'aggregate': [
                 {
-                    'formula': 'resource_count = server_count + cloud_service_count'
+                    'query': {
+                        'resource_type': 'identity.Project',
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            },
+                                            {
+                                                'key': 'name',
+                                                'name': 'project_name'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    'join': {
+                        'resource_type': 'inventory.Server',
+                        'type': 'LEFT',
+                        'keys': ['project_id'],
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            }
+                                        ],
+                                        'fields': [
+                                            {
+                                                'operator': 'count',
+                                                'name': 'server_count'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    'join': {
+                        'resource_type': 'inventory.CloudService',
+                        'type': 'LEFT',
+                        'keys': ['project_id'],
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            }
+                                        ],
+                                        'fields': [
+                                            {
+                                                'operator': 'count',
+                                                'name': 'cloud_service_count'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    'formula': {
+                        'eval': 'resource_count = server_count + cloud_service_count'
+                    }
+                },
+                {
+                    'sort': {
+                        'key': 'resource_count',
+                        'desc': True
+                    }
                 }
-            ]
+            ],
+            'page': {
+                'limit': 5
+            }
         })
 
         mock_stat_resource.side_effect = [
             {
                 'results': [{
                     'project_id': 'project-123',
-                    'project_name': 'ncsoft',
-                    'project_group_name': 'game'
+                    'project_name': 'ncsoft'
                 }, {
                     'project_id': 'project-456',
-                    'project_name': 'nexon',
-                    'project_group_name': 'game'
+                    'project_name': 'nexon'
                 }, {
                     'project_id': 'project-789',
-                    'project_name': 'netmarble',
-                    'project_group_name': 'game'
+                    'project_name': 'netmarble'
                 }]
             }, {
                 'results': [{
@@ -191,7 +219,7 @@ class TestHistoryService(unittest.TestCase):
             'domain_id': self.domain_id,
             'topic': history_vos[0].topic,
             'query': {
-                'aggregate': {
+                'aggregate': [{
                     'group': {
                         'keys': [{
                             'key': 'created_at',
@@ -202,11 +230,12 @@ class TestHistoryService(unittest.TestCase):
                             'name': 'Count'
                         }]
                     }
-                },
-                'sort': {
-                    'name': 'Count',
-                    'desc': True
-                }
+                }, {
+                    'sort': {
+                        'key': 'Count',
+                        'desc': True
+                    }
+                }]
             }
         }
 
