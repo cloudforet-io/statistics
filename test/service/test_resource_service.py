@@ -46,29 +46,23 @@ class TestResourceService(unittest.TestCase):
             {
                 'results': [{
                     'project_id': 'project-123',
-                    'project_name': 'ncsoft',
-                    'project_group_name': 'game'
+                    'project_name': 'ncsoft'
                 }, {
                     'project_id': 'project-456',
-                    'project_name': 'nexon',
-                    'project_group_name': 'game'
+                    'project_name': 'nexon'
                 }, {
                     'project_id': 'project-789',
-                    'project_name': 'netmarble',
-                    'project_group_name': 'game'
+                    'project_name': 'netmarble'
                 }]
             }, {
                 'results': [{
                     'project_id': 'project-123',
-                    'project_name': 'ncsoft',
                     'server_count': 100
                 }, {
                     'project_id': 'project-456',
-                    'project_name': 'nexon',
                     'server_count': 65
                 }, {
                     'project_id': 'project-789',
-                    'project_name': 'netmarble',
                     'server_count': 77
                 }]
             }, {
@@ -86,67 +80,99 @@ class TestResourceService(unittest.TestCase):
         ]
 
         params = {
-            'resource_type': 'identity.Project',
-            'query': {
-                'aggregate': {
-                    'group': {
-                        'keys': [{
-                            'key': 'project_id',
-                            'name': 'project_id'
-                        }, {
-                            'key': 'name',
-                            'name': 'project_name'
-                        }, {
-                            'key': 'project_group.name',
-                            'name': 'project_group_name'
-                        }],
+            'aggregate': [
+                {
+                    'query': {
+                        'resource_type': 'identity.Project',
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            },
+                                            {
+                                                'key': 'name',
+                                                'name': 'project_name'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
                     }
                 },
-                'sort': {
-                    'name': 'resource_count',
-                    'desc': True
-                }
-            },
-            'join': [{
-                'keys': ['project_id', 'project_name'],
-                'resource_type': 'inventory.Server',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }],
-                            'fields': [{
-                                'operator': 'count',
-                                'name': 'server_count'
-                            }]
-                        }
-                    }
-                }
-            }, {
-                'keys': ['project_id'],
-                'resource_type': 'inventory.CloudService',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }],
-                            'fields': [{
-                                'operator': 'count',
-                                'name': 'cloud_service_count'
-                            }]
-                        }
-                    }
-                }
-            }],
-            'formulas': [
                 {
-                    'formula': 'resource_count = server_count + cloud_service_count'
+                    'join': {
+                        'resource_type': 'inventory.Server',
+                        'type': 'LEFT',
+                        'keys': ['project_id'],
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            }
+                                        ],
+                                        'fields': [
+                                            {
+                                                'operator': 'count',
+                                                'name': 'server_count'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    'join': {
+                        'resource_type': 'inventory.CloudService',
+                        'type': 'LEFT',
+                        'keys': ['project_id'],
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            }
+                                        ],
+                                        'fields': [
+                                            {
+                                                'operator': 'count',
+                                                'name': 'cloud_service_count'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    'formula': {
+                        'eval': 'resource_count = server_count + cloud_service_count'
+                    }
+                },
+                {
+                    'sort': {
+                        'key': 'resource_count',
+                        'desc': True
+                    }
                 }
             ],
+            'page': {
+                'limit': 5
+            },
             'domain_id': utils.generate_id('domain')
         }
 
@@ -174,34 +200,51 @@ class TestResourceService(unittest.TestCase):
         ]
 
         params = {
-            'resource_type': 'inventory.Job',
-            'query': {
-                'filter': [{
-                    'key': 'state',
-                    'value': 'SUCCESS',
-                    'operator': 'eq'
-                }],
-                'aggregate': {
-                    'count': {
-                        'name': 'success_count'
-                    }
-                }
-            },
-            'join': [{
-                'resource_type': 'inventory.Jon',
-                'query': {
-                    'filter': [{
-                        'key': 'state',
-                        'value': 'FAILURE',
-                        'operator': 'eq'
-                    }],
-                    'aggregate': {
-                        'count': {
-                            'name': 'fail_count'
+            'aggregate': [
+                {
+                    'query': {
+                        'resource_type': 'inventory.Job',
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'count': {
+                                        'name': 'success_count'
+                                    }
+                                }
+                            ],
+                            'filter': [
+                                {
+                                    'key': 'state',
+                                    'value': 'SUCCESS',
+                                    'operator': 'eq'
+                                }
+                            ]
                         }
                     }
+                },
+                {
+                    'join': {
+                        'resource_type': 'inventory.Job',
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'count': {
+                                        'name': 'fail_count'
+                                    }
+                                }
+                            ],
+                            'filter': [
+                                {
+                                    'key': 'state',
+                                    'value': 'FAILURE',
+                                    'operator': 'eq'
+                                }
+                            ]
+                        }
+                    }
+
                 }
-            }],
+            ],
             'domain_id': utils.generate_id('domain')
         }
 
@@ -227,35 +270,51 @@ class TestResourceService(unittest.TestCase):
         ]
 
         params = {
-            'resource_type': 'inventory.Job',
-            'query': {
-                'filter': [{
-                    'key': 'state',
-                    'value': 'SUCCESS',
-                    'operator': 'eq'
-                }],
-                'aggregate': {
-                    'count': {
-                        'name': 'success_count'
+            'aggregate': [
+                {
+                    'query': {
+                        'resource_type': 'inventory.Job',
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'count': {
+                                        'name': 'success_count'
+                                    }
+                                }
+                            ],
+                            'filter': [
+                                {
+                                    'key': 'state',
+                                    'value': 'SUCCESS',
+                                    'operator': 'eq'
+                                }
+                            ]
+                        }
                     }
-                }
-            },
-            'join': [{
-                'type': 'OUTER',
-                'resource_type': 'inventory.Jon',
-                'query': {
-                    'filter': [{
-                        'key': 'state',
-                        'value': 'FAILURE',
-                        'operator': 'eq'
-                    }],
-                    'aggregate': {
-                        'count': {
-                            'name': 'fail_count'
+                },
+                {
+                    'join': {
+                        'resource_type': 'inventory.Job',
+                        'type': 'OUTER',
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'count': {
+                                        'name': 'fail_count'
+                                    }
+                                }
+                            ],
+                            'filter': [
+                                {
+                                    'key': 'state',
+                                    'value': 'FAILURE',
+                                    'operator': 'eq'
+                                }
+                            ]
                         }
                     }
                 }
-            }],
+            ],
             'domain_id': utils.generate_id('domain')
         }
 
@@ -291,48 +350,62 @@ class TestResourceService(unittest.TestCase):
         ]
 
         params = {
-            'resource_type': 'identity.Project',
-            'query': {
-                'aggregate': {
-                    'group': {
-                        'keys': [{
-                            'key': 'project_id',
-                            'name': 'project_id'
-                        }, {
-                            'key': 'name',
-                            'name': 'project_name'
-                        }, {
-                            'key': 'project_group.name',
-                            'name': 'project_group_name'
-                        }],
+            'aggregate': [
+                {
+                    'query': {
+                        'resource_type': 'identity.Project',
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            },
+                                            {
+                                                'key': 'name',
+                                                'name': 'project_name'
+                                            }
+                                        ],
+                                        'fields': []
+                                    }
+                                }
+                            ]
+                        }
                     }
                 },
-                'page': {
-                    'start': 2,
-                    'limit': 1
-                }
-            },
-            'join': [{
-                'keys': ['project_id', 'project_name'],
-                'resource_type': 'inventory.Server',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }, {
-                                'key': 'name',
-                                'name': 'project_name'
-                            }],
-                            'fields': [{
-                                'operator': 'count',
-                                'name': 'server_count'
-                            }]
+                {
+                    'join': {
+                        'resource_type': 'inventory.Server',
+                        'keys': ['project_id'],
+                        'query': {
+                            'aggregate': [
+                                {
+                                    'group': {
+                                        'keys': [
+                                            {
+                                                'key': 'project_id',
+                                                'name': 'project_id'
+                                            }
+                                        ],
+                                        'fields': [
+                                            {
+                                                'operator': 'count',
+                                                'name': 'server_count'
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
-            }],
+            ],
+            'page': {
+                'start': 2,
+                'limit': 1
+            },
             'domain_id': utils.generate_id('domain')
         }
 
@@ -361,13 +434,19 @@ class TestResourceService(unittest.TestCase):
         ]
 
         params = {
-            'resource_type': 'identity.Project',
-            'query': {
-                'distinct': 'project_id',
-                'page': {
-                    'start': 5,
-                    'limit': 5
+            'aggregate': [
+                {
+                    'query': {
+                        'resource_type': 'identity.Project',
+                        'query': {
+                            'distinct': 'project_id'
+                        }
+                    }
                 }
+            ],
+            'page': {
+                'start': 5,
+                'limit': 5
             },
             'domain_id': utils.generate_id('domain')
         }
@@ -378,61 +457,6 @@ class TestResourceService(unittest.TestCase):
 
         print_data(results, 'test_resource_stat_distinct')
         StatisticsInfo(results)
-
-    @patch.object(MongoModel, 'connect', return_value=None)
-    @patch.object(ServiceConnector, '_check_resource_type', return_value=None)
-    @patch.object(ServiceConnector, 'stat_resource')
-    def test_resource_stat_distinct_with_join(self, mock_stat_resource, *args):
-        mock_stat_resource.side_effect = [
-            {
-                'results': [
-                    utils.generate_id('project'),
-                    utils.generate_id('project'),
-                    utils.generate_id('project'),
-                    utils.generate_id('project'),
-                    utils.generate_id('project')
-                ],
-                'total_count': 24
-            }
-        ]
-
-        params = {
-            'resource_type': 'identity.Project',
-            'query': {
-                'distinct': 'project_id',
-                'page': {
-                    'start': 5,
-                    'limit': 5
-                }
-            },
-            'join': [{
-                'keys': ['project_id', 'project_name'],
-                'resource_type': 'inventory.Server',
-                'query': {
-                    'aggregate': {
-                        'group': {
-                            'keys': [{
-                                'key': 'project_id',
-                                'name': 'project_id'
-                            }, {
-                                'key': 'name',
-                                'name': 'project_name'
-                            }],
-                            'fields': [{
-                                'operator': 'count',
-                                'name': 'server_count'
-                            }]
-                        }
-                    }
-                }
-            }],
-            'domain_id': utils.generate_id('domain')
-        }
-
-        self.transaction.method = 'stat'
-        resource_svc = ResourceService(transaction=self.transaction)
-        with self.assertRaises(ERROR_STATISTICS_DISTINCT):
-            resource_svc.stat(params.copy())
 
 
 if __name__ == "__main__":

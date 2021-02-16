@@ -212,41 +212,8 @@ class ScheduleService(BaseService):
         if schedule and len(schedule) > 1:
             raise ERROR_SCHEDULE_OPTION()
 
-    @staticmethod
-    def _check_query_option(options):
-        if 'resource_type' not in options:
-            raise ERROR_REQUIRED_PARAMETER(key='option.resource_type')
-
-        if 'query' not in options:
-            raise ERROR_REQUIRED_PARAMETER(key='option.query')
-
     def _verify_query_option(self, options, domain_id):
-        self._check_query_option(options)
+        aggregate = options.get('aggregate', [])
+        page = options.get('page', {})
 
-        resource_type = options['resource_type']
-        query = options['query']
-        distinct = query.get('distinct')
-        extend_data = options.get('extend_data', {})
-        fill_na = options.get('fill_na', {})
-        join = options.get('join', [])
-        concat = options.get('concat', [])
-        formulas = options.get('formulas', [])
-        sort = query.get('sort')
-        page = query.get('page', {})
-        limit = query.get('limit')
-        has_additional_stat = len(extend_data.keys()) > 0 or len(join) > 0 or len(concat) > 0 or len(formulas) > 0
-
-        if distinct:
-            if has_additional_stat:
-                raise ERROR_STATISTICS_DISTINCT()
-        else:
-            if has_additional_stat:
-                query['sort'] = None
-                query['page'] = None
-                query['limit'] = None
-
-        response = self.resource_mgr.stat(resource_type, query, domain_id)
-        if has_additional_stat:
-            results = response.get('results', [])
-            self.resource_mgr.execute_additional_stat(results, resource_type, query, extend_data, join,
-                                                      concat, fill_na, formulas, sort, page, limit, domain_id)
+        self.resource_mgr.stat(aggregate, page, domain_id)

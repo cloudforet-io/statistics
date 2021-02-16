@@ -31,3 +31,7 @@ class ERROR_STATISTICS_DISTINCT(ERROR_INVALID_ARGUMENT):
 
 class ERROR_INVALID_RESOURCE_TYPE(ERROR_INVALID_ARGUMENT):
     _message = 'Resource type is undefined. (resource_type = {resource_type})'
+
+
+class ERROR_REQUIRED_QUERY_OPERATION(ERROR_INVALID_ARGUMENT):
+    _message = 'The first stage of aggregation requires a query.'
