@@ -1,0 +1,65 @@
+REMOTE_URL:
+- file:///opt/spaceone/statistics/config/database.yaml
+- file:///opt/spaceone/statistics/config/shared.yaml
+- file:///opt/spaceone/statistics/config/application.yaml
+GLOBAL:
+  MAX_WORKERS: 1000
+  DATABASES:
+    default:
+      db: statistics
+      host: mongodb
+      port: 27017
+      maxPoolSize: 200
+      username: statistics_user
+      password: statistics_password
+  CACHES:
+    default:
+      backend: spaceone.core.cache.redis_cache.RedisCache
+      host: redis
+      port: 6379
+      db: 1
+      encoding: utf-8
+      socket_timeout: 10
+      socket_connect_timeout: 10
+  LOG:
+    loggers:
+      spaceone:
+        handlers:
+          - console
+          - file
+    handlers:
+      file:
+        type: file
+        filename: /var/log/spaceone/statistics.log
+  HANDLERS:
+    authentication:
+    - backend: spaceone.core.handler.authentication_handler.AuthenticationGRPCHandler
+      uri: grpc://identity:50051/v1/Domain/get_public_key
+    authorization:
+    - backend: spaceone.core.handler.authorization_handler.AuthorizationGRPCHandler
+      uri: grpc://identity:50051/v1/Authorization/verify
+  CONNECTORS:
+    IdentityConnector:
+      endpoint:
+        v1: grpc://identity:50051
+    SecretConnector:
+      endpoint:
+        v1: grpc://secret:50051
+    PluginConnector:
+      endpoint:
+        v1: grpc://plugin:50051
+    RepositoryConnector:
+      endpoint:
+        v1: grpc://repository:50051
+    ServiceConnector:
+      config: grpc://config:50051/v1
+      cost_saving: grpc://cost-saving:50051/v1
+      identity: grpc://identity:50051/v1
+      inventory: grpc://inventory:50051/v1
+      monitoring: grpc://monitoring:50051/v1
+      plugin: grpc://plugin:50051/v1
+      power_scheduler: grpc://power-scheduler:50051/v1
+      report: grpc://report:50051/v1
+      repository: grpc://repository:50051/v1
+      secret: grpc://secret:50051/v1
+      statistics: grpc://localhost:50051/v1
