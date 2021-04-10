@@ -1,0 +1,123 @@
+###############################
+# DEFAULT 
+###############################
+enabled: true
+developer: false
+scheduler: false
+worker: false
+name: statistics
+replicas: 1
+image:
+    name: spaceone/statistics
+    version: latest
+imagePullPolicy: IfNotPresent
+
+# Overwrite database
+database: {}
+
+# Overwrite application config
+application: {}
+application:
+    CONNECTORS:
+        ServiceConnector:
+            statistics: grpc://localhost:50051/v1
+            identity: grpc://identity:50051/v1
+            repository: grpc://repository:50051/v1
+            secret: grpc://secret:50051/v1
+            inventory: grpc://inventory:50051/v1
+            plugin: grpc://plugin:50051/v1
+            monitoring: grpc://monitoring:50051/v1
+            config: grpc://config:50051/v1
+            report: grpc://report:50051/v1
+            power_scheduler: grpc://power-scheduler:50051/v1
+            cost_saving: grpc://cost-saving:50051/v1
+
+# Overwrite scheduler config
+#application_scheduler: {}
+application_scheduler:
+    QUEUES:
+        statistics_q:
+            backend: spaceone.core.queue.redis_queue.RedisQueue
+            host: redis
+            port: 6379
+            channel: scheduler
+
+    SCHEDULERS:
+        hourly_scheduler:
+            backend: spaceone.statistics.scheduler.stat_hourly_scheduler.StatHourlyScheduler
+            queue: statistics_q
+            interval: 1
+            minute: ':01'
+
+# Overwrite worker config
+#application_worker: {}
+application_worker:
+    QUEUES:
+        statistics_q:
+            backend: spaceone.core.queue.redis_queue.RedisQueue
+            host: redis
+            port: 6379
+            channel: scheduler
+
+    WORKERS:
+        statistics_worker:
+            backend: spaceone.core.scheduler.worker.BaseWorker
+            queue: statistics_q
+
+# local sidecar
+##########################
+#sidecar:
+
+
+##########################
+# Local volumes
+##########################
+volumes:
+    - name: timezone
+      hostPath:
+          path: /usr/share/zoneinfo/Asia/Seoul
+    - name: log-volume
+      emptyDir: {}
+
+#######################
+# global variable
+#######################
+global:
+    shared: {}
+    sidecar: []
+#        - name: mongos
+#          image: mongo:4.4.0-bionic
+#          command: [ 'mongos', '--config', '/mnt/mongos.yml', '--bind_ip_all' ]
+#          volumeMounts:
+#            - name: mongos-conf
+#              mountPath: /mnt/mongos.yml
+#              subPath: mongos.yml
+#              readOnly: true
+#            - name: mongo-shard-key
+#              mountPath: /opt/mongos/mongo-shard.pem
+#              subPath: mongo-shard.pem
+#              readOnly: true
+#
+    volumes: []
+#        - name: mongo-shard-key
+#          secret:
+#              defaultMode: 0400
+#              secretName: mongo-shard-key
+#        - name: mongos-conf
+#          configMap:
+#              name: mongos-conf
+#        - name: shared-conf
+#          configMap:
+#              name: shared-conf
+
+    
+# Service
+service:
+    type: ClusterIP
+    annotations:
+        nil: nil
+    ports:
+        - name: grpc
+          port: 50051
+          targetPort: 50051
+          protocol: TCP
