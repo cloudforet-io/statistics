@@ -1,6 +1,7 @@
 import functools
 from spaceone.api.statistics.v1 import history_pb2
 from spaceone.core.pygrpc.message_type import *
+from spaceone.core import utils
 from spaceone.statistics.model.history_model import History
 
 __all__ = ['HistoryInfo']
@@ -10,7 +11,7 @@ def HistoryValueInfo(history_vo: History, minimal=False):
     info = {
         'topic': history_vo.topic,
         'values': change_struct_type(history_vo.values) if history_vo.values else None,
-        'created_at': change_timestamp_type(history_vo.created_at),
+        'created_at': utils.datetime_to_iso8601(history_vo.created_at),
         'domain_id': history_vo.domain_id
     }
 

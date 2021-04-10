@@ -184,13 +184,9 @@ class TestScheduleService(unittest.TestCase):
             'schedule': {
                 'hours': [0, 6, 12, 18]
             },
-            'tags': [
-                {
-                    'key': 'tag_key',
-                    'value': 'tag_value'
-                }
-
-            ],
+            'tags': {
+                utils.random_string(): utils.random_string()
+            },
             'domain_id': utils.generate_id('domain')
         }
 
@@ -206,7 +202,7 @@ class TestScheduleService(unittest.TestCase):
         self.assertEqual('ENABLED', schedule_vo.state)
         self.assertEqual(schedule_vo.options, params['options'])
         self.assertEqual(schedule_vo.schedule.hours, params['schedule']['hours'])
-        self.assertEqual(params.get('tags', {}), schedule_vo.to_dict()['tags'])
+        self.assertEqual(params['tags'], utils.tags_to_dict(schedule_vo.tags))
         self.assertEqual(params['domain_id'], schedule_vo.domain_id)
 
     @patch.object(MongoModel, 'connect', return_value=None)
@@ -218,12 +214,9 @@ class TestScheduleService(unittest.TestCase):
             'schedule': {
                 'cron': '*/5 * * * *'
             },
-            'tags': [
-                {
-                    'key': 'update_key',
-                    'value': 'update_value'
-                }
-            ],
+            'tags': {
+                'update_key': 'update_value'
+            },
             'domain_id': self.domain_id
         }
 
@@ -238,7 +231,7 @@ class TestScheduleService(unittest.TestCase):
         self.assertEqual(new_schedule_vo.schedule_id, schedule_vo.schedule_id)
         self.assertIsInstance(schedule_vo.schedule, Scheduled)
         self.assertEqual(schedule_vo.schedule.cron, params['schedule']['cron'])
-        self.assertEqual(params.get('tags', {}), schedule_vo.to_dict()['tags'])
+        self.assertEqual(params['tags'], utils.tags_to_dict(schedule_vo.tags))
         self.assertEqual(params['domain_id'], schedule_vo.domain_id)
 
     @patch.object(MongoModel, 'connect', return_value=None)

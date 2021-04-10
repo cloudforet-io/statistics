@@ -2,6 +2,7 @@ import logging
 import copy
 
 from spaceone.core.service import *
+from spaceone.core import utils
 
 from spaceone.statistics.error import *
 from spaceone.statistics.manager.resource_manager import ResourceManager
@@ -31,7 +32,7 @@ class ScheduleService(BaseService):
                 'topic': 'str',
                 'options': 'dict',
                 'schedule': 'dict',
-                'tags': 'list',
+                'tags': 'dict',
                 'domain_id': 'str'
             }
 
@@ -42,6 +43,9 @@ class ScheduleService(BaseService):
         domain_id = params['domain_id']
         options = copy.deepcopy(params['options'])
         schedule = params['schedule']
+
+        if 'tags' in params:
+            params['tags'] = utils.dict_to_tags(params['tags'])
 
         self._check_schedule(schedule)
         self._verify_query_option(options, domain_id)
@@ -56,7 +60,7 @@ class ScheduleService(BaseService):
             params (dict): {
                 'schedule_id': 'str',
                 'schedule': 'dict',
-                'tags': 'list',
+                'tags': 'dict',
                 'domain_id': 'str'
             }
 
@@ -64,6 +68,9 @@ class ScheduleService(BaseService):
             schedule_vo
         """
         schedule = params.get('schedule')
+
+        if 'tags' in params:
+            params['tags'] = utils.dict_to_tags(params['tags'])
 
         self._check_schedule(schedule)
 
