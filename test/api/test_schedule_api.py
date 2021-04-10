@@ -1,4 +1,5 @@
 import unittest
+import copy
 from unittest.mock import patch
 from mongoengine import connect, disconnect
 from google.protobuf.json_format import MessageToDict
@@ -19,9 +20,17 @@ from test.factory.schedule_factory import ScheduleFactory
 class _MockScheduleService(BaseService):
 
     def add(self, params):
+        params = copy.deepcopy(params)
+        if 'tags' in params:
+            params['tags'] = utils.dict_to_tags(params['tags'])
+
         return ScheduleFactory(**params)
 
     def update(self, params):
+        params = copy.deepcopy(params)
+        if 'tags' in params:
+            params['tags'] = utils.dict_to_tags(params['tags'])
+
         return ScheduleFactory(**params)
 
     def delete(self, params):
@@ -165,12 +174,9 @@ class TestScheduleAPI(unittest.TestCase):
                 'minutes': [0, 10, 20, 30, 40, 50],
                 'hours': [0, 6, 12, 18]
             },
-            'tags': [
-                {
-                    'key': 'tag_key',
-                    'value': 'tag_value'
-                }
-            ],
+            'tags': {
+                utils.random_string(): utils.random_string()
+            },
             'domain_id': utils.generate_id('domain')
         }
         mock_parse_request.return_value = (params, {})
@@ -186,7 +192,7 @@ class TestScheduleAPI(unittest.TestCase):
         self.assertEqual(schedule_info.state, schedule_pb2.ScheduleInfo.State.ENABLED)
         self.assertEqual(schedule_data['options'], params['options'])
         self.assertDictEqual(schedule_data['schedule'], params['schedule'])
-        self.assertListEqual(schedule_data['tags'], params['tags'])
+        self.assertDictEqual(schedule_data['tags'], params['tags'])
         self.assertEqual(schedule_info.domain_id, params['domain_id'])
         self.assertIsNotNone(getattr(schedule_info, 'created_at', None))
 
@@ -199,12 +205,9 @@ class TestScheduleAPI(unittest.TestCase):
             'schedule': {
                 'cron': '* * * * *'
             },
-            'tags': [
-                {
-                    'key': 'update_key',
-                    'value': 'update_value'
-                }
-            ],
+            'tags': {
+                'update_key': 'update_value'
+            },
             'domain_id': utils.generate_id('domain')
         }
         mock_parse_request.return_value = (params, {})
@@ -217,7 +220,7 @@ class TestScheduleAPI(unittest.TestCase):
 
         self.assertIsInstance(schedule_info, schedule_pb2.ScheduleInfo)
         self.assertEqual(schedule_data['schedule'], params['schedule'])
-        self.assertListEqual(schedule_data['tags'], params['tags'])
+        self.assertDictEqual(schedule_data['tags'], params['tags'])
 
     @patch.object(BaseAPI, '__init__', return_value=None)
     @patch.object(Locator, 'get_service', return_value=_MockScheduleService())
