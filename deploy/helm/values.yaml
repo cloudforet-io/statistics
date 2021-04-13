@@ -16,7 +16,7 @@ imagePullPolicy: IfNotPresent
 database: {}
 
 # Overwrite application config
-application: {}
+#application: {}
 application:
     CONNECTORS:
         ServiceConnector:
@@ -31,6 +31,7 @@ application:
             report: grpc://report:50051/v1
             power_scheduler: grpc://power-scheduler:50051/v1
             cost_saving: grpc://cost-saving:50051/v1
+            spot_automation: grpc://spot-automation:50051/v1
 
 # Overwrite scheduler config
 #application_scheduler: {}
