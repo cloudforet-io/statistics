@@ -4,7 +4,7 @@ from google.protobuf.json_format import MessageToDict
 
 from spaceone.core.connector import BaseConnector
 from spaceone.core import pygrpc
-from spaceone.core.utils import parse_endpoint
+from spaceone.core.utils import parse_grpc_endpoint
 from spaceone.core.error import *
 from spaceone.statistics.error.resource import *
 
@@ -24,11 +24,8 @@ class ServiceConnector(BaseConnector):
             if service not in self.config:
                 raise ERROR_INVALID_RESOURCE_TYPE(resource_type=f'{service}.{resource}')
 
-            e = parse_endpoint(self.config[service])
-            if e.get('path') is None:
-                raise ERROR_CONNECTOR_CONFIGURATION(backend=self.__class__.__name__)
-
-            self.client[service] = pygrpc.client(endpoint=f'{e.get("hostname")}:{e.get("port")}')
+            e = parse_grpc_endpoint(self.config[service])
+            self.client[service] = pygrpc.client(endpoint=e['endpoint'], ssl_enabled=e['ssl_enabled'])
 
     def _check_resource_type(self, service, resource):
         if service not in self.client.keys():

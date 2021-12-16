@@ -124,19 +124,23 @@ class ResourceManager(BaseManager):
 
     @staticmethod
     def _generate_empty_data(query):
-        empty_join_data = {}
-        for stage in query.get('aggregate', []):
+        empty_data = {}
+        aggregate = query.get('aggregate', [])
+        aggregate.reverse()
+        for stage in aggregate:
             if 'group' in stage:
                 group = stage['group']
                 for key in group.get('keys', []):
                     if 'name' in key:
-                        empty_join_data[key['name']] = []
+                        empty_data[key['name']] = []
 
                 for field in group.get('fields', []):
                     if 'name' in field:
-                        empty_join_data[field['name']] = []
+                        empty_data[field['name']] = []
 
-        return pd.DataFrame(empty_join_data)
+                break
+
+        return pd.DataFrame(empty_data)
 
     def _join(self, options, domain_id, base_df):
         if 'type' in options and options['type'] not in _JOIN_TYPE_MAP:
@@ -146,16 +150,11 @@ class ResourceManager(BaseManager):
         join_type = options.get('type', 'LEFT')
         join_df = self._query(options, domain_id, operator='join')
 
-        if len(join_df) == 0:
-            join_df = self._generate_empty_data(options['query'])
-
         try:
-            if len(base_df) > 0:
-                if join_keys:
-                    base_df = pd.merge(base_df, join_df, on=join_keys, how=_JOIN_TYPE_MAP[join_type])
-                else:
-                    base_df = pd.merge(base_df, join_df, left_index=True, right_index=True,
-                                       how=_JOIN_TYPE_MAP[join_type])
+            if join_keys:
+                base_df = pd.merge(base_df, join_df, on=join_keys, how=_JOIN_TYPE_MAP[join_type])
+            else:
+                base_df = pd.merge(base_df, join_df, left_index=True, right_index=True, how=_JOIN_TYPE_MAP[join_type])
         except Exception as e:
             if join_keys is None:
                 raise ERROR_STATISTICS_INDEX_JOIN(reason=str(e))
@@ -186,6 +185,10 @@ class ResourceManager(BaseManager):
                 df = pd.DataFrame(results, columns=['value'])
             else:
                 df = pd.DataFrame(results)
+
+                if len(df) == 0:
+                    df = self._generate_empty_data(options['query'])
+
             return self._extend_data(df, extend_data)
 
         except ERROR_BASE as e:
