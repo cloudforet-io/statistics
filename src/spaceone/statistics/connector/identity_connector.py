@@ -4,7 +4,7 @@ from google.protobuf.json_format import MessageToDict
 
 from spaceone.core.connector import BaseConnector
 from spaceone.core import pygrpc
-from spaceone.core.utils import parse_endpoint
+from spaceone.core.utils import parse_grpc_endpoint
 from spaceone.core.error import *
 
 
@@ -23,8 +23,8 @@ class IdentityConnector(BaseConnector):
             raise ERROR_WRONG_CONFIGURATION(key='too many endpoint')
 
         for (k, v) in self.config['endpoint'].items():
-            e = parse_endpoint(v)
-            self.client = pygrpc.client(endpoint=f'{e.get("hostname")}:{e.get("port")}', version=k)
+            e = parse_grpc_endpoint(v)
+            self.client = pygrpc.client(endpoint=e['endpoint'], ssl_enabled=e['ssl_enabled'])
 
     def get_user(self, user_id, domain_id):
         response = self.client.User.get({
