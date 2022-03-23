@@ -51,10 +51,3 @@ GLOBAL:
     RepositoryConnector:
       endpoint:
         v1: grpc://repository:50051
-    ServiceConnector:
-      statistics: grpc://localhost:50051/v1
-      identity: grpc://identity:50051/v1
-      inventory: grpc://inventory:50051/v1
-      monitoring: grpc://monitoring:50051/v1
-      cost_analysis: grpc://cost-analysis:50051/v1
-      notification: grpc://notification:50051/v1
