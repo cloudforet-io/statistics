@@ -45,7 +45,7 @@ class Schedule(MongoModel):
             'topic'
         ],
         'indexes': [
-            'schedule_id',
+            # 'schedule_id',
             'topic',
             'state',
             'domain_id',
