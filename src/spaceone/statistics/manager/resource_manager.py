@@ -103,14 +103,30 @@ class ResourceManager(BaseManager):
 
     @staticmethod
     def _sort(options, base_df):
-        if 'key' in options and len(base_df) > 0:
-            ascending = not options.get('desc', False)
-            try:
-                return base_df.sort_values(by=options['key'], ascending=ascending)
-            except Exception as e:
-                raise ERROR_STATISTICS_QUERY(reason=f'Sorting failed. (sort = {options})')
-        else:
-            return base_df
+        if len(base_df) > 0:
+            if 'key' in options:
+                ascending = not options.get('desc', False)
+                try:
+                    return base_df.sort_values(by=options['key'], ascending=ascending)
+                except Exception as e:
+                    raise ERROR_STATISTICS_QUERY(reason=f'Sorting failed. (sort = {options})')
+            elif 'keys' in options:
+                keys = []
+                ascendings = []
+                for sort_options in options.get('keys', []):
+                    key = sort_options.get('key')
+                    ascending = not sort_options.get('desc', False)
+
+                    if key:
+                        keys.append(key)
+                        ascendings.append(ascending)
+
+                try:
+                    return base_df.sort_values(by=keys, ascending=ascendings)
+                except Exception as e:
+                    raise ERROR_STATISTICS_QUERY(reason=f'Sorting failed. (sort = {options})')
+
+        return base_df
 
     def _concat(self, options, domain_id, base_df):
         concat_df = self._query(options, domain_id, operator='join')
