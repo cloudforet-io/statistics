@@ -5,7 +5,6 @@ from spaceone.statistics.model.schedule_model import Schedule, Scheduled
 
 
 class ScheduledFactory(factory.mongoengine.MongoEngineFactory):
-
     class Meta:
         model = Scheduled
 
@@ -16,7 +15,6 @@ class ScheduledFactory(factory.mongoengine.MongoEngineFactory):
 
 
 class ScheduleFactory(factory.mongoengine.MongoEngineFactory):
-
     class Meta:
         model = Schedule
 
@@ -61,12 +59,7 @@ class ScheduleFactory(factory.mongoengine.MongoEngineFactory):
         }
     }
     schedule = factory.SubFactory(ScheduledFactory)
-    tags = [
-        {
-            'key': 'tag_key',
-            'value': 'tag_value'
-        }
-    ]
+    tags = {'tag_key': 'tag_value'}
     domain_id = utils.generate_id('domain')
     created_at = factory.Faker('date_time')
     last_scheduled_at = None

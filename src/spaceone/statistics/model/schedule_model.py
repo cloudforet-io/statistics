@@ -13,18 +13,13 @@ class Scheduled(EmbeddedDocument):
         return self.to_mongo()
 
 
-class ScheduleTag(EmbeddedDocument):
-    key = StringField(max_length=255)
-    value = StringField(max_length=255)
-
-
 class Schedule(MongoModel):
     schedule_id = StringField(max_length=40, generate_id='sch', unique=True)
     topic = StringField(max_length=255, unique_with='domain_id')
     state = StringField(max_length=20, default='ENABLED', choices=('ENABLED', 'DISABLED'))
     options = DictField(required=True)
     schedule = EmbeddedDocumentField(Scheduled, default=Scheduled)
-    tags = ListField(EmbeddedDocumentField(ScheduleTag))
+    tags = DictField()
     domain_id = StringField(max_length=255)
     created_at = DateTimeField(auto_now_add=True)
     last_scheduled_at = DateTimeField(default=None, null=True)
@@ -49,6 +44,5 @@ class Schedule(MongoModel):
             'topic',
             'state',
             'domain_id',
-            ('tags.key', 'tags.value')
         ]
     }

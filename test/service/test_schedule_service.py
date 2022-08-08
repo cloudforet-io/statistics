@@ -202,7 +202,7 @@ class TestScheduleService(unittest.TestCase):
         self.assertEqual('ENABLED', schedule_vo.state)
         self.assertEqual(schedule_vo.options, params['options'])
         self.assertEqual(schedule_vo.schedule.hours, params['schedule']['hours'])
-        self.assertEqual(params['tags'], utils.tags_to_dict(schedule_vo.tags))
+        self.assertEqual(params['tags'], schedule_vo.tags)
         self.assertEqual(params['domain_id'], schedule_vo.domain_id)
 
     @patch.object(MongoModel, 'connect', return_value=None)
@@ -231,7 +231,7 @@ class TestScheduleService(unittest.TestCase):
         self.assertEqual(new_schedule_vo.schedule_id, schedule_vo.schedule_id)
         self.assertIsInstance(schedule_vo.schedule, Scheduled)
         self.assertEqual(schedule_vo.schedule.cron, params['schedule']['cron'])
-        self.assertEqual(params['tags'], utils.tags_to_dict(schedule_vo.tags))
+        self.assertEqual(params['tags'], schedule_vo.tags)
         self.assertEqual(params['domain_id'], schedule_vo.domain_id)
 
     @patch.object(MongoModel, 'connect', return_value=None)
@@ -369,7 +369,7 @@ class TestScheduleService(unittest.TestCase):
 
     @patch.object(MongoModel, 'connect', return_value=None)
     def test_list_schedules_by_tag(self, *args):
-        ScheduleFactory(tags=[{'key': 'tag_key_1', 'value': 'tag_value_1'}], domain_id=self.domain_id)
+        ScheduleFactory(tags={'tag_key_1': 'tag_value_1'}, domain_id=self.domain_id)
         schedule_vos = ScheduleFactory.build_batch(9, domain_id=self.domain_id)
         list(map(lambda vo: vo.save(), schedule_vos))
 
