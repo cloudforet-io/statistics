@@ -21,15 +21,11 @@ class _MockScheduleService(BaseService):
 
     def add(self, params):
         params = copy.deepcopy(params)
-        if 'tags' in params:
-            params['tags'] = utils.dict_to_tags(params['tags'])
 
         return ScheduleFactory(**params)
 
     def update(self, params):
         params = copy.deepcopy(params)
-        if 'tags' in params:
-            params['tags'] = utils.dict_to_tags(params['tags'])
 
         return ScheduleFactory(**params)
 

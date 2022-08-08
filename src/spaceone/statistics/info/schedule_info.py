@@ -28,7 +28,7 @@ def ScheduleInfo(schedule_vo: Schedule, minimal=False):
         info.update({
             'options': change_struct_type(schedule_vo.options) if schedule_vo.options else None,
             'schedule': ScheduledInfo(schedule_vo.schedule) if schedule_vo.schedule else None,
-            'tags': change_struct_type(utils.tags_to_dict(schedule_vo.tags)),
+            'tags': change_struct_type(schedule_vo.tags),
             'domain_id': schedule_vo.domain_id,
             'created_at': utils.datetime_to_iso8601(schedule_vo.created_at),
             'last_scheduled_at': utils.datetime_to_iso8601(schedule_vo.last_scheduled_at)

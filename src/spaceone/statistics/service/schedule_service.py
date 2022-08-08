@@ -44,9 +44,6 @@ class ScheduleService(BaseService):
         options = copy.deepcopy(params['options'])
         schedule = params['schedule']
 
-        if 'tags' in params:
-            params['tags'] = utils.dict_to_tags(params['tags'])
-
         self._check_schedule(schedule)
         self._verify_query_option(options, domain_id)
         return self.schedule_mgr.add_schedule(params)
@@ -68,9 +65,6 @@ class ScheduleService(BaseService):
             schedule_vo
         """
         schedule = params.get('schedule')
-
-        if 'tags' in params:
-            params['tags'] = utils.dict_to_tags(params['tags'])
 
         self._check_schedule(schedule)
 
@@ -156,7 +150,6 @@ class ScheduleService(BaseService):
     @transaction(append_meta={'authorization.scope': 'DOMAIN'})
     @check_required(['domain_id'])
     @append_query_filter(['schedule_id', 'topic', 'state', 'data_source_id', 'resource_type', 'domain_id'])
-    @change_tag_filter('tags')
     @append_keyword_filter(['schedule_id', 'topic', 'resource_type'])
     def list(self, params):
         """ List schedules
@@ -183,7 +176,6 @@ class ScheduleService(BaseService):
     @transaction(append_meta={'authorization.scope': 'DOMAIN'})
     @check_required(['query', 'domain_id'])
     @append_query_filter(['domain_id'])
-    @change_tag_filter('tags')
     @append_keyword_filter(['schedule_id', 'topic', 'resource_type'])
     def stat(self, params):
         """
