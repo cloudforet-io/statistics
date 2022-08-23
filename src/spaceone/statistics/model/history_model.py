@@ -23,6 +23,7 @@ class History(MongoModel):
             'topic',
             'schedule',
             'domain_id',
-            'created_at'
+            'created_at',
+            'values.project_id'
         ]
     }

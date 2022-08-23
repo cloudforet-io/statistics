@@ -51,10 +51,7 @@ class HistoryService(BaseService):
         results = response.get('results', [])
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)
 
-    @transaction(append_meta={
-        'authorization.scope': 'PROJECT',
-        'mutation.append_parameter': {'user_projects': 'authorization.projects'}
-    })
+    @transaction(append_meta={'authorization.scope': 'PROJECT'})
     @check_required(['domain_id'])
     @append_query_filter(['topic', 'domain_id', 'user_projects'])
     @append_keyword_filter(['topic'])
@@ -77,10 +74,7 @@ class HistoryService(BaseService):
         query = params.get('query', {})
         return self.history_mgr.list_history(query)
 
-    @transaction(append_meta={
-        'authorization.scope': 'PROJECT',
-        'mutation.append_parameter': {'user_projects': 'authorization.projects'}
-    })
+    @transaction(append_meta={'authorization.scope': 'PROJECT'})
     @check_required(['query', 'domain_id'])
     @append_query_filter(['topic', 'domain_id', 'user_projects'])
     @append_keyword_filter(['topic'])
