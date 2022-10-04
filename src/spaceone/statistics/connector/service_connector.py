@@ -25,7 +25,8 @@ class ServiceConnector(BaseConnector):
                 raise ERROR_INVALID_RESOURCE_TYPE(resource_type=f'{service}.{resource}')
 
             e = parse_grpc_endpoint(self.config[service])
-            self.client[service] = pygrpc.client(endpoint=e['endpoint'], ssl_enabled=e['ssl_enabled'])
+            self.client[service] = pygrpc.client(endpoint=e['endpoint'], ssl_enabled=e['ssl_enabled'],
+                                                 max_message_length=1024*1024*256)
 
     def _check_resource_type(self, service, resource):
         if service not in self.client.keys():
