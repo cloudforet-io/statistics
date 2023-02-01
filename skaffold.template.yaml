@@ -1,0 +1,19 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: statistics
+build:
+  platforms: ["linux/amd64"]
+  tagPolicy:
+    sha256: {}
+  artifacts:
+    - image: ${IMAGE_REPOSITORY}/statistics
+      docker:
+        dockerfile: Dockerfile
+deploy:
+  helm:
+    releases:
+    - name: statistics
+      chartPath: deploy/helm
+      valuesFiles:
+      - ${VALUES_LOCATION}/statistics.yaml
