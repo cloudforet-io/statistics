@@ -29,11 +29,8 @@ setup(
     install_requires=[
         'spaceone-core',
         'spaceone-api',
-        'mongoengine',
         'pandas',
         'numpy',
-        'python-consul',
-        'redis'
     ],
     zip_safe=False,
 )
