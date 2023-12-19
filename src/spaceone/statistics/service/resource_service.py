@@ -13,21 +13,25 @@ _LOGGER = logging.getLogger(__name__)
 @mutation_handler
 @event_handler
 class ResourceService(BaseService):
+    resource = "Resource"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.resource_mgr: ResourceManager = self.locator.get_manager('ResourceManager')
 
-    @transaction(append_meta={'authorization.scope': 'DOMAIN'})
+    @transaction(
+        permission="statistics:Resource.read",
+        role_types=["WORKSPACE_OWNER", "WORKSPACE_MEMBER"],
+    )
     @check_required(['aggregate', 'domain_id'])
     def stat(self, params):
         """Statistics query to resource
 
         Args:
             params (dict): {
-                'aggregate': 'list',
+                'aggregate': 'list',      # required
                 'page': 'dict',
-                'domain_id': 'str'
+                'domain_id': 'str'        # injected from auth
             }
 
         Returns:

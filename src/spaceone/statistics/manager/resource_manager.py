@@ -26,7 +26,7 @@ _SUPPORTED_AGGREGATE_OPERATIONS = [
 
 class ResourceManager(BaseManager):
 
-    def stat(self, aggregate, page, domain_id):
+    def stat(self, aggregate: list, page: dict, domain_id: str) -> dict:
         results = self._execute_aggregate_operations(aggregate, domain_id)
         return self._page(page, results)
 
