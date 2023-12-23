@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 
 from spaceone.core.manager import BaseManager
+from spaceone.core.connector.space_connector import SpaceConnector
 from spaceone.statistics.error import *
-from spaceone.statistics.connector.service_connector import ServiceConnector
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,11 +26,11 @@ _SUPPORTED_AGGREGATE_OPERATIONS = [
 
 class ResourceManager(BaseManager):
 
-    def stat(self, aggregate: list, page: dict, domain_id: str) -> dict:
-        results = self._execute_aggregate_operations(aggregate, domain_id)
+    def stat(self, aggregate: list, page: dict) -> dict:
+        results = self._execute_aggregate_operations(aggregate)
         return self._page(page, results)
 
-    def _execute_aggregate_operations(self, aggregate, domain_id):
+    def _execute_aggregate_operations(self, aggregate):
         df = None
 
         if 'query' not in aggregate[0]:
@@ -38,13 +38,13 @@ class ResourceManager(BaseManager):
 
         for stage in aggregate:
             if 'query' in stage:
-                df = self._query(stage['query'], domain_id)
+                df = self._query(stage['query'])
 
             elif 'join' in stage:
-                df = self._join(stage['join'], domain_id, df)
+                df = self._join(stage['join'], df)
 
             elif 'concat' in stage:
-                df = self._concat(stage['concat'], domain_id, df)
+                df = self._concat(stage['concat'], df)
 
             elif 'sort' in stage:
                 df = self._sort(stage['sort'], df)
@@ -104,32 +104,26 @@ class ResourceManager(BaseManager):
     @staticmethod
     def _sort(options, base_df):
         if len(base_df) > 0:
-            if 'key' in options:
-                ascending = not options.get('desc', False)
-                try:
-                    return base_df.sort_values(by=options['key'], ascending=ascending)
-                except Exception as e:
-                    raise ERROR_STATISTICS_QUERY(reason=f'Sorting failed. (sort = {options})')
-            elif 'keys' in options:
-                keys = []
-                ascendings = []
-                for sort_options in options.get('keys', []):
-                    key = sort_options.get('key')
-                    ascending = not sort_options.get('desc', False)
+            keys = []
+            ascendings = []
 
-                    if key:
-                        keys.append(key)
-                        ascendings.append(ascending)
+            for sort_option in options:
+                key = sort_option.get('key')
+                ascending = not sort_option.get('desc', False)
 
-                try:
-                    return base_df.sort_values(by=keys, ascending=ascendings)
-                except Exception as e:
-                    raise ERROR_STATISTICS_QUERY(reason=f'Sorting failed. (sort = {options})')
+                if key:
+                    keys.append(key)
+                    ascendings.append(ascending)
+
+            try:
+                return base_df.sort_values(by=keys, ascending=ascendings)
+            except Exception as e:
+                raise ERROR_STATISTICS_QUERY(reason=f'Sorting failed. (sort = {options})')
 
         return base_df
 
-    def _concat(self, options, domain_id, base_df):
-        concat_df = self._query(options, domain_id, operator='join')
+    def _concat(self, options, base_df):
+        concat_df = self._query(options, operator='join')
 
         try:
             base_df = pd.concat([base_df, concat_df], ignore_index=True)
@@ -158,13 +152,13 @@ class ResourceManager(BaseManager):
 
         return pd.DataFrame(empty_data)
 
-    def _join(self, options, domain_id, base_df):
+    def _join(self, options, base_df):
         if 'type' in options and options['type'] not in _JOIN_TYPE_MAP:
             raise ERROR_INVALID_PARAMETER_TYPE(key='aggregate.join.type', type=list(_JOIN_TYPE_MAP.keys()))
 
         join_keys = options.get('keys')
         join_type = options.get('type', 'LEFT')
-        join_df = self._query(options, domain_id, operator='join')
+        join_df = self._query(options, operator='join')
 
         try:
             if join_keys:
@@ -179,7 +173,7 @@ class ResourceManager(BaseManager):
 
         return base_df
 
-    def _query(self, options, domain_id, operator='query'):
+    def _query(self, options, operator='query'):
         resource_type = options.get('resource_type')
         query = options.get('query')
         extend_data = options.get('extend_data', {})
@@ -190,11 +184,13 @@ class ResourceManager(BaseManager):
         if query is None:
             raise ERROR_REQUIRED_PARAMETER(key=f'aggregate.{operator}.query')
 
-        self.service_connector: ServiceConnector = self.locator.get_connector('ServiceConnector')
         service, resource = self._parse_resource_type(resource_type)
 
         try:
-            response = self.service_connector.stat_resource(service, resource, query, domain_id)
+            connector: SpaceConnector = self.locator.get_connector('SpaceConnector', service=service)
+
+            _LOGGER.debug(f'[_query] stat resource: {resource_type}.stat')
+            response = connector.dispatch(f'{resource}.stat', {'query': query})
             results = response.get('results', [])
 
             if len(results) > 0 and not isinstance(results[0], dict):
