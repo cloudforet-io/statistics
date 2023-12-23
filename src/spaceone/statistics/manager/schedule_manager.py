@@ -1,8 +1,8 @@
 import logging
 
 from spaceone.core.manager import BaseManager
-from spaceone.statistics.error import *
 from spaceone.statistics.model.schedule_model import Schedule
+from spaceone.statistics.manager.identity_manager import IdentityManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -76,5 +76,5 @@ class ScheduleManager(BaseManager):
         return self.schedule_model.stat(**query)
 
     def list_domains(self, query: dict) -> dict:
-        identity_connector = self.locator.get_connector("IdentityConnector")
-        return identity_connector.list_domains(query)
+        identity_mgr: IdentityManager = self.locator.get_manager("IdentityManager")
+        return identity_mgr.list_domains(query)
