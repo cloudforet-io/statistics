@@ -51,38 +51,6 @@ database: {}
 #application: {}
 application: {}
 
-# Overwrite scheduler config
-#application_scheduler: {}
-application_scheduler:
-    QUEUES:
-        statistics_q:
-            backend: spaceone.core.queue.redis_queue.RedisQueue
-            host: redis
-            port: 6379
-            channel: stat_scheduler
-
-    SCHEDULERS:
-        hourly_scheduler:
-            backend: spaceone.statistics.scheduler.stat_hourly_scheduler.StatHourlyScheduler
-            queue: statistics_q
-            interval: 1
-            minute: ':01'
-
-# Overwrite worker config
-#application_worker: {}
-application_worker:
-    QUEUES:
-        statistics_q:
-            backend: spaceone.core.queue.redis_queue.RedisQueue
-            host: redis
-            port: 6379
-            channel: stat_scheduler
-
-    WORKERS:
-        statistics_worker:
-            backend: spaceone.core.scheduler.worker.BaseWorker
-            queue: statistics_q
-
 application_rest: {}
 
 ##########################
