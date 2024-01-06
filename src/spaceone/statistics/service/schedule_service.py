@@ -50,7 +50,7 @@ class ScheduleService(BaseService):
 
         self._check_schedule(schedule)
         self._verify_query_option(options)
-        return self.schedule_mgr.add_schedule(schedule)
+        return self.schedule_mgr.add_schedule(params)
 
     @transaction(
         permission="statistics:Schedule.write",
