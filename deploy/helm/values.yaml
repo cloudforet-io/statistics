@@ -82,6 +82,7 @@ application_worker:
         statistics_worker:
             backend: spaceone.core.scheduler.worker.BaseWorker
             queue: statistics_q
+            pool: 1
 
 application_rest: {}
 
