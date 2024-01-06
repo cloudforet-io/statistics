@@ -12,10 +12,10 @@ class ResourceService(BaseService):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.resource_mgr: ResourceManager = self.locator.get_manager('ResourceManager')
+        self.resource_mgr: ResourceManager = self.locator.get_manager("ResourceManager")
 
     @transaction()
-    @check_required(['aggregate'])
+    @check_required(["aggregate"])
     def stat(self, params):
         """Statistics query to resource
 
@@ -26,9 +26,12 @@ class ResourceService(BaseService):
             }
 
         Returns:
-            stat_info (object)
+            dict: {
+                'results': 'list',
+                'total_count': 'int'
+            }
         """
-        aggregate = params.get('aggregate', [])
-        page = params.get('page', {})
+        aggregate = params.get("aggregate", [])
+        page = params.get("page", {})
 
         return self.resource_mgr.stat(aggregate, page)

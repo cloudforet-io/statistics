@@ -1,4 +1,6 @@
 import logging
+from typing import Tuple
+from mongoengine import QuerySet
 
 from spaceone.core.manager import BaseManager
 from spaceone.statistics.model.schedule_model import Schedule
@@ -26,13 +28,7 @@ class ScheduleManager(BaseManager):
 
         return schedule_vo
 
-    def update_schedule(self, params: dict) -> Schedule:
-        schedule_vo: Schedule = self.get_schedule(
-            params["schedule_id"], params["domain_id"]
-        )
-        return self.update_schedule_by_vo(params, schedule_vo)
-
-    def update_schedule_by_vo(self, params: dict, schedule_vo: Schedule):
+    def update_schedule_by_vo(self, params: dict, schedule_vo: Schedule) -> Schedule:
         def _rollback(old_data: dict) -> None:
             _LOGGER.info(
                 f"[update_schedule_by_vo._rollback] Revert Data : "
@@ -44,32 +40,14 @@ class ScheduleManager(BaseManager):
 
         return schedule_vo.update(params)
 
-    def delete_schedule(self, schedule_id: str, domain_id: str) -> None:
-        schedule_vo: Schedule = self.get_schedule(schedule_id, domain_id)
+    @staticmethod
+    def delete_schedule_by_vo(schedule_vo: Schedule) -> None:
         schedule_vo.delete()
 
-    def get_schedule(
-        self,
-        schedule_id: str,
-        domain_id: str,
-        workspace_id: str = None,
-        user_projects: list = None,
-        only: list = None,
-    ) -> Schedule:
-        conditions = {"schedule_id": schedule_id, "domain_id": domain_id}
+    def get_schedule(self, schedule_id: str, domain_id: str) -> Schedule:
+        return self.schedule_model.get(schedule_id=schedule_id, domain_id=domain_id)
 
-        if workspace_id:
-            conditions["workspace_id"] = workspace_id
-
-        if user_projects:
-            conditions["project_id"] = user_projects
-
-        if only:
-            conditions["only"] = only
-
-        return self.schedule_model.get(**conditions)
-
-    def list_schedules(self, query: dict) -> dict:
+    def list_schedules(self, query: dict) -> Tuple[QuerySet, int]:
         return self.schedule_model.query(**query)
 
     def stat_schedules(self, query: dict) -> dict:

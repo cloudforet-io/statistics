@@ -1,11 +1,9 @@
 import logging
 
 from spaceone.core.service import *
-from spaceone.statistics.error import *
 from spaceone.statistics.manager.resource_manager import ResourceManager
 from spaceone.statistics.manager.schedule_manager import ScheduleManager
 from spaceone.statistics.manager.history_manager import HistoryManager
-from spaceone.statistics.model import History
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -15,6 +13,8 @@ _LOGGER = logging.getLogger(__name__)
 @mutation_handler
 @event_handler
 class HistoryService(BaseService):
+    resource = "History"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.resource_mgr: ResourceManager = self.locator.get_manager("ResourceManager")
@@ -46,7 +46,7 @@ class HistoryService(BaseService):
         aggregate = options.get("aggregate", [])
         page = params.get("page", {})
 
-        response = self.resource_mgr.stat(aggregate, page, domain_id)
+        response = self.resource_mgr.stat(aggregate, page)
 
         results = response.get("results", [])
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)
@@ -55,21 +55,19 @@ class HistoryService(BaseService):
         permission="statistics:History.read",
         role_types=["DOMAIN_ADMIN", "WORKSPACE_OWNER", "WORKSPACE_MEMBER"],
     )
-    @change_value_by_rule("APPEND", "workspace_id", "*")
-    @change_value_by_rule("APPEND", "user_projects", "*")
     @check_required(["domain_id"])
-    @append_query_filter(["topic", "domain_id", "workspace_id", "user_projects"])
+    @append_query_filter(["topic", "workspace_id", "domain_id", "user_projects"])
     @append_keyword_filter(["topic"])
-    def list(self, params):
+    def list(self, params: dict):
         """List history
 
         Args:
             params (dict): {
                 'query': 'dict (spaceone.api.core.v1.Query)',
                 'topic': 'str',
-                'domain_id': 'str',                            # injected from auth
-                'workspace_id': 'str',                         # injected from auth
-                'user_projects': 'list'                        # injected from auth
+                'workspace_id': 'str',                  # injected from auth
+                'domain_id': 'str',                     # injected from auth (required)
+                'user_projects': 'list'                 # injected from auth
             }
 
         Returns:
@@ -84,23 +82,25 @@ class HistoryService(BaseService):
         permission="statistics:History.read",
         role_types=["DOMAIN_ADMIN", "WORKSPACE_OWNER", "WORKSPACE_MEMBER"],
     )
-    @change_value_by_rule("APPEND", "workspace_id", "*")
-    @change_value_by_rule("APPEND", "user_projects", "*")
     @check_required(["query", "domain_id"])
-    @append_query_filter(["topic", "domain_id", "workspace_id", "user_projects"])
+    @append_query_filter(["topic", "workspace_id", "domain_id", "user_projects"])
     @append_keyword_filter(["topic"])
-    def stat(self, params):
+    def stat(self, params: dict) -> dict:
         """
         Args:
             params (dict): {
+                'query': 'dict (spaceone.api.core.v1.StatisticsQuery)', # required
                 'topic': 'str',
-                'domain_id': 'str',
-                'query': 'dict (spaceone.api.core.v1.StatisticsQuery)',
-                'user_projects': 'list', // from meta
+                'workspace_id': 'str',              # injected from auth
+                'domain_id': 'str',                 # injected from auth (required)
+                'user_projects': 'list',            # injected from auth
             }
 
         Returns:
-            values (list) : 'list of statistics data'
+            dict: {
+                'results': 'list',
+                'total_count': 'int'
+            }
 
         """
 

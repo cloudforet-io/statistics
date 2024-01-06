@@ -10,8 +10,11 @@ class IdentityManager(BaseManager):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.identity_conn: SpaceConnector = self.locator.get_connector(
-            "SpaceConnector", service="identity", token=config.get_global("TOKEN")
+            "SpaceConnector", service="identity"
         )
 
     def list_domains(self, query: dict) -> dict:
-        return self.identity_conn.dispatch("Domain.list", {"query": query})
+        system_token = config.get_global("TOKEN")
+        return self.identity_conn.dispatch(
+            "Domain.list", {"query": query}, token=system_token
+        )
