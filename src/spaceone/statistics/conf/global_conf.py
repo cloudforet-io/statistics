@@ -50,5 +50,18 @@ CONNECTORS = {
     }
 }
 
+# Queue Settings
+collect_queue = "statistics_q"
+QUEUES = {
+    "statistics_q": {
+        "backend": "spaceone.core.queue.redis_queue.RedisQueue",
+        "host": "redis",
+        "port": 6379,
+        "channel": "stat_scheduler",
+    },
+}
+SCHEDULERS = {}
+WORKERS = {}
+
 # System Token Settings
 TOKEN = ""
