@@ -38,14 +38,17 @@ HANDLERS = {
 
 # Connector Settings
 CONNECTORS = {
-    'SpaceConnector': {
+    "SpaceConnector": {
         "backend": "spaceone.core.connector.space_connector:SpaceConnector",
-        'endpoints': {
-            'identity': 'grpc://identity:50051/v1',
-            'inventory': 'grpc://inventory:50051/v1',
-            'monitoring': 'grpc://monitoring:50051/v1',
-            'cost_analysis': 'grpc://cost-analysis:50051/v1',
-            'notification': 'grpc://notification:50051/v1',
-        }
+        "endpoints": {
+            "identity": "grpc://identity:50051/v1",
+            "inventory": "grpc://inventory:50051/v1",
+            "monitoring": "grpc://monitoring:50051/v1",
+            "cost_analysis": "grpc://cost-analysis:50051/v1",
+            "notification": "grpc://notification:50051/v1",
+        },
     }
 }
+
+# System Token Settings
+TOKEN = ""
