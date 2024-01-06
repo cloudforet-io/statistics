@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+from typing import Tuple
+from mongoengine import QuerySet
 
 from spaceone.core.manager import BaseManager
 
@@ -15,7 +17,7 @@ class HistoryManager(BaseManager):
         self.history_model: History = self.locator.get_model("History")
 
     def create_history(
-        self, schedule_vo, topic: str, results: dict, domain_id: str
+        self, schedule_vo, topic: str, results: list, domain_id: str
     ) -> None:
         def _rollback(vo: History):
             _LOGGER.info(f"[create_history._rollback] " f"Delete history : {vo.topic}")
@@ -38,7 +40,7 @@ class HistoryManager(BaseManager):
 
             self.transaction.add_rollback(_rollback, history_vo)
 
-    def list_history(self, query: dict) -> dict:
+    def list_history(self, query: dict) -> Tuple[QuerySet, int]:
         return self.history_model.query(**query)
 
     def stat_history(self, query: dict) -> dict:

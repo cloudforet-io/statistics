@@ -1,1 +1,0 @@
-from spaceone.statistics.scheduler.stat_hourly_scheduler import StatHourlyScheduler

@@ -10,7 +10,7 @@ class Scheduled(EmbeddedDocument):
     hours = ListField(IntField(), default=None, null=True)
 
     def to_dict(self):
-        return self.to_mongo()
+        return dict(self.to_mongo())
 
 
 class Schedule(MongoModel):
@@ -40,7 +40,6 @@ class Schedule(MongoModel):
             'topic'
         ],
         'indexes': [
-            # 'schedule_id',
             'topic',
             'state',
             'domain_id',

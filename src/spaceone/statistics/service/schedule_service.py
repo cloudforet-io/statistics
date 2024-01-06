@@ -49,7 +49,7 @@ class ScheduleService(BaseService):
         schedule = params["schedule"]
 
         self._check_schedule(schedule)
-        self._verify_query_option(options, domain_id)
+        self._verify_query_option(options)
         return self.schedule_mgr.add_schedule(schedule)
 
     @transaction(
@@ -73,7 +73,11 @@ class ScheduleService(BaseService):
         """
         self._check_schedule(params.get("schedule"))
 
-        return self.schedule_mgr.update_schedule(params)
+        schedule_vo = self.schedule_mgr.get_schedule(
+            params["schedule_id"], params["domain_id"]
+        )
+
+        return self.schedule_mgr.update_schedule_by_vo(params, schedule_vo)
 
     @transaction(
         permission="statistics:Schedule.write",
@@ -145,14 +149,15 @@ class ScheduleService(BaseService):
             None
         """
 
-        self.schedule_mgr.delete_schedule(params["schedule_id"], params["domain_id"])
+        schedule_vo = self.schedule_mgr.get_schedule(
+            params["schedule_id"], params["domain_id"]
+        )
+        self.schedule_mgr.delete_schedule_by_vo(schedule_vo)
 
     @transaction(
         permission="statistics:Schedule.read",
-        role_types=["DOMAIN_ADMIN", "WORKSPACE_OWNER", "WORKSPACE_MEMBER"],
+        role_types=["DOMAIN_ADMIN"],
     )
-    @change_value_by_rule("APPEND", "workspace_id", "*")
-    @change_value_by_rule("APPEND", "user_projects", "*")
     @check_required(["schedule_id", "domain_id"])
     def get(self, params):
         """Get schedule
@@ -161,8 +166,6 @@ class ScheduleService(BaseService):
             params (dict): {
                 'schedule_id': 'str',     # required
                 'domain_id': 'str'        # injected from auth (required)
-                'workspace_id': 'str'     # injected from auth
-                'user_projects': 'list'   # injected from auth
             }
 
         Returns:
@@ -171,33 +174,23 @@ class ScheduleService(BaseService):
 
         schedule_id = params["schedule_id"]
         domain_id = params["domain_id"]
-        workspace_id = params.get("workspace_id")
-        user_projects = params.get("user_projects")
 
-        return self.schedule_mgr.get_schedule(
-            schedule_id, domain_id, workspace_id, user_projects
-        )
+        return self.schedule_mgr.get_schedule(schedule_id, domain_id)
 
     @transaction(
         permission="statistics:Schedule.read",
-        role_types=["DOMAIN_ADMIN", "WORKSPACE_OWNER", "WORKSPACE_MEMBER"],
+        role_types=["DOMAIN_ADMIN"],
     )
-    @change_value_by_rule("APPEND", "workspace_id", "*")
-    @change_value_by_rule("APPEND", "user_projects", "*")
     @check_required(["domain_id"])
     @append_query_filter(
         [
             "schedule_id",
             "topic",
             "state",
-            "data_source_id",
-            "resource_type",
             "domain_id",
-            "workspace_id",
-            "user_projects",
         ]
     )
-    @append_keyword_filter(["schedule_id", "topic", "resource_type", "domain_id"])
+    @append_keyword_filter(["schedule_id", "topic"])
     def list(self, params):
         """List schedules
 
@@ -207,10 +200,7 @@ class ScheduleService(BaseService):
                 'schedule_id': 'str',
                 'topic': 'str',
                 'state': 'str',
-                'resource_type': 'str',
                 'domain_id': 'str',                            # injected from auth (required)
-                'workspace_id': 'str',                         # injected from auth
-                'user_projects': 'list'                        # injected from auth
             }
 
         Returns:
@@ -223,25 +213,24 @@ class ScheduleService(BaseService):
 
     @transaction(
         permission="statistics:Schedule.read",
-        role_types=["DOMAIN_ADMIN", "WORKSPACE_OWNER", "WORKSPACE_MEMBER"],
+        role_types=["DOMAIN_ADMIN"],
     )
-    @change_value_by_rule("APPEND", "workspace_id", "*")
-    @change_value_by_rule("APPEND", "user_projects", "*")
     @check_required(["query", "domain_id"])
-    @append_query_filter(["domain_id", "workspace_id", "user_projects"])
-    @append_keyword_filter(["schedule_id", "topic", "resource_type"])
+    @append_query_filter(["domain_id"])
+    @append_keyword_filter(["schedule_id", "topic"])
     def stat(self, params):
         """
         Args:
             params (dict): {
-                'query': 'dict (spaceone.api.core.v1.StatisticsQuery)'
+                'query': 'dict (spaceone.api.core.v1.StatisticsQuery)'  # required
                 'domain_id': 'str',                                     # injected from auth (required)
-                'workspace_id': 'str',                                  # injected from auth
-                'user_projects': 'list'                                 # injected from auth
             }
 
         Returns:
-            values (list) : 'list of statistics data'
+            dict: {
+                'results': 'list',
+                'total_count': 'int'
+            }
 
         """
 
@@ -266,8 +255,8 @@ class ScheduleService(BaseService):
         if schedule and len(schedule) > 1:
             raise ERROR_SCHEDULE_OPTION()
 
-    def _verify_query_option(self, options: dict, domain_id: str) -> None:
+    def _verify_query_option(self, options: dict) -> None:
         aggregate = options.get("aggregate", [])
         page = options.get("page", {})
 
-        self.resource_mgr.stat(aggregate, page, domain_id)
+        self.resource_mgr.stat(aggregate, page)
