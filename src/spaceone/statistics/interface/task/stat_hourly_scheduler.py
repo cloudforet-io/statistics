@@ -21,12 +21,12 @@ class StatHourlyScheduler(HourlyScheduler):
         self._token = config.get_global("TOKEN")
         if self._token is None:
             raise ERROR_CONFIGURATION(key="TOKEN")
-        self._hour = datetime.utcnow().hour
 
     def create_task(self):
+        current_hour = datetime.now().hour
         result = []
         for domain_info in self.list_domains():
-            stp = self._create_job_request(domain_info["domain_id"])
+            stp = self._create_job_request(domain_info["domain_id"], current_hour)
             result.append(stp)
         return result
 
@@ -41,10 +41,10 @@ class StatHourlyScheduler(HourlyScheduler):
             _LOGGER.error(e)
             return []
 
-    def _list_schedule(self, domain_id):
+    def _list_schedule(self, domain_id: str, current_hour: int):
         params = {
             "query": {
-                "filter": [{"k": "schedule.hours", "v": self._hour, "o": "eq"}],
+                "filter": [{"k": "schedule.hours", "v": current_hour, "o": "eq"}],
             },
             "domain_id": domain_id,
         }
@@ -53,13 +53,13 @@ class StatHourlyScheduler(HourlyScheduler):
         )
         schedules, total_count = schedule_svc.list(params)
         _LOGGER.debug(
-            f"[_list_schedule] schedules: {schedules}, total_count: {total_count}"
+            f"[_list_schedule] scheduled count (UTC {current_hour}): {total_count}"
         )
         return schedules
 
-    def _create_job_request(self, domain_id):
+    def _create_job_request(self, domain_id: str, current_hour: int):
         _LOGGER.debug(f"[_create_job_request] domain: {domain_id}")
-        schedules = self._list_schedule(domain_id)
+        schedules = self._list_schedule(domain_id, current_hour)
         schedule_jobs = []
         for schedule in schedules:
             job = {
