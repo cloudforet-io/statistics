@@ -23,7 +23,7 @@ class StatHourlyScheduler(HourlyScheduler):
             raise ERROR_CONFIGURATION(key="TOKEN")
 
     def create_task(self):
-        current_hour = datetime.now().hour
+        current_hour = datetime.utcnow().hour
         result = []
         for domain_info in self.list_domains():
             stp = self._create_job_request(domain_info["domain_id"], current_hour)
