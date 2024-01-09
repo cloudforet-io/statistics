@@ -46,7 +46,7 @@ class HistoryService(BaseService):
         aggregate = options.get("aggregate", [])
         page = params.get("page", {})
 
-        response = self.resource_mgr.stat(aggregate, page)
+        response = self.resource_mgr.stat(aggregate, page, domain_id)
 
         results = response.get("results", [])
         self.history_mgr.create_history(schedule_vo, topic, results, domain_id)

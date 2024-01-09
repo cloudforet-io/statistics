@@ -16,5 +16,5 @@ class IdentityManager(BaseManager):
     def list_domains(self, query: dict) -> dict:
         system_token = config.get_global("TOKEN")
         return self.identity_conn.dispatch(
-            "Domain.list", {"query": query}, token=system_token
+            "Domain.list", {"query": query, "state": "ENABLED"}, token=system_token
         )
