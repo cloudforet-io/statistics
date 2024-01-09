@@ -2,6 +2,7 @@ import logging
 import pandas as pd
 import numpy as np
 
+from spaceone.core.auth.jwt.jwt_util import JWTUtil
 from spaceone.core.manager import BaseManager
 from spaceone.core.connector.space_connector import SpaceConnector
 from spaceone.statistics.error import *
@@ -20,11 +21,11 @@ _SUPPORTED_AGGREGATE_OPERATIONS = [
 
 
 class ResourceManager(BaseManager):
-    def stat(self, aggregate: list, page: dict) -> dict:
-        results = self._execute_aggregate_operations(aggregate)
+    def stat(self, aggregate: list, page: dict, domain_id: str = None) -> dict:
+        results = self._execute_aggregate_operations(aggregate, domain_id)
         return self._page(page, results)
 
-    def _execute_aggregate_operations(self, aggregate):
+    def _execute_aggregate_operations(self, aggregate: list, domain_id: str = None):
         df = None
 
         if "query" not in aggregate[0]:
@@ -32,13 +33,13 @@ class ResourceManager(BaseManager):
 
         for stage in aggregate:
             if "query" in stage:
-                df = self._query(stage["query"])
+                df = self._query(stage["query"], domain_id=domain_id)
 
             elif "join" in stage:
-                df = self._join(stage["join"], df)
+                df = self._join(stage["join"], df, domain_id)
 
             elif "concat" in stage:
-                df = self._concat(stage["concat"], df)
+                df = self._concat(stage["concat"], df, domain_id)
 
             elif "sort" in stage:
                 df = self._sort(stage["sort"], df)
@@ -122,8 +123,8 @@ class ResourceManager(BaseManager):
 
         return base_df
 
-    def _concat(self, options, base_df):
-        concat_df = self._query(options, operator="join")
+    def _concat(self, options, base_df, domain_id):
+        concat_df = self._query(options, operator="join", domain_id=domain_id)
 
         try:
             base_df = pd.concat([base_df, concat_df], ignore_index=True)
@@ -152,7 +153,7 @@ class ResourceManager(BaseManager):
 
         return pd.DataFrame(empty_data)
 
-    def _join(self, options, base_df):
+    def _join(self, options, base_df, domain_id):
         if "type" in options and options["type"] not in _JOIN_TYPE_MAP:
             raise ERROR_INVALID_PARAMETER_TYPE(
                 key="aggregate.join.type", type=list(_JOIN_TYPE_MAP.keys())
@@ -160,7 +161,7 @@ class ResourceManager(BaseManager):
 
         join_keys = options.get("keys")
         join_type = options.get("type", "LEFT")
-        join_df = self._query(options, operator="join")
+        join_df = self._query(options, operator="join", domain_id=domain_id)
 
         try:
             if join_keys:
@@ -185,7 +186,7 @@ class ResourceManager(BaseManager):
 
         return base_df
 
-    def _query(self, options, operator="query"):
+    def _query(self, options, operator="query", domain_id=None):
         resource_type = options.get("resource_type")
         query = options.get("query")
         extend_data = options.get("extend_data", {})
@@ -199,12 +200,21 @@ class ResourceManager(BaseManager):
         service, resource = self._parse_resource_type(resource_type)
 
         try:
+            token = self.transaction.get_meta("token")
+            token_type = JWTUtil.get_value_from_token(token, "typ")
+
             connector: SpaceConnector = self.locator.get_connector(
                 "SpaceConnector", service=service
             )
 
             _LOGGER.debug(f"[_query] stat resource: {resource_type}.stat")
-            response = connector.dispatch(f"{resource}.stat", {"query": query})
+            if token_type == "SYSTEM_TOKEN":
+                response = connector.dispatch(
+                    f"{resource}.stat", {"query": query}, x_domain_id=domain_id
+                )
+            else:
+                response = connector.dispatch(f"{resource}.stat", {"query": query})
+
             results = response.get("results", [])
 
             if len(results) > 0 and not isinstance(results[0], dict):
