@@ -27,7 +27,8 @@ class StatHourlyScheduler(HourlyScheduler):
         result = []
         for domain_info in self.list_domains():
             stp = self._create_job_request(domain_info["domain_id"], current_hour)
-            result.append(stp)
+            if stp is not None:
+                result.append(stp)
         return result
 
     def list_domains(self):
@@ -58,31 +59,35 @@ class StatHourlyScheduler(HourlyScheduler):
         return schedules
 
     def _create_job_request(self, domain_id: str, current_hour: int):
-        _LOGGER.debug(f"[_create_job_request] domain: {domain_id}")
         schedules = self._list_schedule(domain_id, current_hour)
-        schedule_jobs = []
-        for schedule in schedules:
-            job = {
-                "locator": "SERVICE",
-                "name": "HistoryService",
-                "metadata": {
-                    "token": self._token,
-                },
-                "method": "create",
-                "params": {
-                    "params": {
-                        "schedule_id": schedule.schedule_id,
-                        "domain_id": domain_id,
-                    }
-                },
-            }
-            schedule_jobs.append(job)
+        schedule_count = len(schedules)
+        if schedule_count > 0:
+            _LOGGER.debug(f"[_create_job_request] {domain_id}: {len(schedules)}")
 
-        stp = {
-            "name": "statistics_hourly_schedule",
-            "version": "v1",
-            "executionEngine": "BaseWorker",
-            "stages": schedule_jobs,
-        }
-        _LOGGER.debug(f"[_create_job_request] tasks: {stp}")
-        return stp
+            schedule_jobs = []
+            for schedule in schedules:
+                job = {
+                    "locator": "SERVICE",
+                    "name": "HistoryService",
+                    "metadata": {
+                        "token": self._token,
+                    },
+                    "method": "create",
+                    "params": {
+                        "params": {
+                            "schedule_id": schedule.schedule_id,
+                            "domain_id": domain_id,
+                        }
+                    },
+                }
+                schedule_jobs.append(job)
+
+            stp = {
+                "name": "statistics_hourly_schedule",
+                "version": "v1",
+                "executionEngine": "BaseWorker",
+                "stages": schedule_jobs,
+            }
+            return stp
+        else:
+            return None
