@@ -31,6 +31,7 @@ class ResourceService(BaseService):
                 'total_count': 'int'
             }
         """
+
         aggregate = params.get("aggregate", [])
         page = params.get("page", {})
 

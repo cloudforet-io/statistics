@@ -49,7 +49,7 @@ class ScheduleService(BaseService):
         schedule = params["schedule"]
 
         self._check_schedule(schedule)
-        self._verify_query_option(options)
+        self._verify_query_option(options, domain_id)
         return self.schedule_mgr.add_schedule(params)
 
     @transaction(
@@ -255,8 +255,8 @@ class ScheduleService(BaseService):
         if schedule and len(schedule) > 1:
             raise ERROR_SCHEDULE_OPTION()
 
-    def _verify_query_option(self, options: dict) -> None:
+    def _verify_query_option(self, options: dict, domain_id: str) -> None:
         aggregate = options.get("aggregate", [])
         page = options.get("page", {})
 
-        self.resource_mgr.stat(aggregate, page)
+        self.resource_mgr.stat(aggregate, page, domain_id)
