@@ -123,7 +123,7 @@ class ResourceManager(BaseManager):
 
         return base_df
 
-    def _concat(self, options, base_df, domain_id):
+    def _concat(self, options, base_df, domain_id=None):
         concat_df = self._query(options, operator="join", domain_id=domain_id)
 
         try:
@@ -153,7 +153,7 @@ class ResourceManager(BaseManager):
 
         return pd.DataFrame(empty_data)
 
-    def _join(self, options, base_df, domain_id):
+    def _join(self, options, base_df, domain_id=None):
         if "type" in options and options["type"] not in _JOIN_TYPE_MAP:
             raise ERROR_INVALID_PARAMETER_TYPE(
                 key="aggregate.join.type", type=list(_JOIN_TYPE_MAP.keys())
